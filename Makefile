@@ -54,6 +54,7 @@ prepare: env composer-install
 
 up: doctor prepare
 	$(SAIL) up -d --build
+	$(MAKE) fresh
 
 down:
 	@if [ -x $(SAIL) ]; then $(SAIL) down; fi

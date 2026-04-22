@@ -1,69 +1,115 @@
-# Laravel 開発テンプレート
+# 勤怠管理アプリ（exam-kintai）
 
-`git clone` 後に `make up` だけで開発開始できることを目的にしたテンプレートです。
+勤怠打刻、勤怠修正申請、管理者承認を行う Web アプリケーションです。
 
-## 前提
+## 目次
+
+- [機能](#機能)
+- [セットアップ詳細](#セットアップ詳細)
+- [テスト実行](#テスト実行)
+- [使用技術（実行環境）](#使用技術実行環境)
+- [各種 URL](#各種-url)
+- [デモユーザー](#デモユーザー)
+- [設計資料](#設計資料)
+- [補足](#補足)
+
+## 機能
+
+- ユーザー登録 / ログイン / メール認証（Fortify）
+- 管理者ログイン（`/admin/login`）
+- 打刻（出勤・退勤・休憩入・休憩戻）
+- 一般ユーザー勤怠一覧（月次）・勤怠詳細
+- 勤怠修正申請（休憩行含む）
+- 申請一覧（承認待ち / 承認済み）
+- 管理者による申請承認
+- 管理者による全体勤怠確認（日次）
+- 管理者によるスタッフ別月次勤怠確認・CSV出力
+
+## セットアップ詳細
+
+### 1. 事前準備
 
 - Docker Desktop
 - GNU Make
 - Mailtrap アカウント（SMTP 認証情報）
 
-## クイックスタート
+### 2. 初期起動（推奨）
 
 ```bash
-git clone <this-repo>
-cd new-template
-make doctor
-make init
+git clone https://github.com/nekomajin-1017/exam-kintai.git
+cd exam-kintai
+make up
 ```
 
-初回 `make init` の実行内容:
+`make up` の実行内容:
 
 1. `.env` が無ければ `.env.example` をコピー
-2. `vendor/` が無ければ `composer install` を実行
-3. `sail up -d --build` でコンテナ起動
-4. `APP_KEY` 生成
-5. MySQL の起動完了待ち
-6. DB migrate
-7. `.env` の `MAIL_USERNAME` / `MAIL_PASSWORD` に Mailtrap のSMTP認証情報を設定
+2. `vendor/` が無ければ `composer install`
+3. Sail コンテナ起動
+4. `php artisan migrate:fresh --seed`
 
-## 開発用コマンド
+### 3. メール設定（認証メール送信用）
 
-```bash
-make doctor    # 前提チェック（Docker/ポート）
-make init      # up + APP_KEY生成 + migrate
-make reset     # コンテナ/volume完全削除
-make down      # 停止
-make restart   # 再起動
-make logs      # ログ追従
-make ps        # コンテナ状態
-make shell     # appコンテナにシェル接続
-make test      # テスト実行
-make pint      # Lint/Format
+`.env` の Mailtrap 設定を更新してください。
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_mailtrap_username
+MAIL_PASSWORD=your_mailtrap_password
+MAIL_FROM_ADDRESS="noreply@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-## CI
+設定反映:
 
-GitHub Actions で `make init` のスモークテストを実行します。  
-設定ファイル: `.github/workflows/template-smoke.yml`
+```bash
+./vendor/bin/sail artisan config:clear
+```
 
-## アクセス先
+## テスト実行
 
-- Laravel: `http://localhost`
-- phpMyAdmin: `http://localhost:${FORWARD_PHPMYADMIN_PORT:-8080}`
+```bash
+make test
+```
 
-## DB 接続情報（初期値）
+または:
 
-- Host: `mysql`
-- Port: `3306`
-- Database: `laravel`
-- Username: `sail`
-- Password: `password`
+```bash
+./vendor/bin/sail test
+```
 
-## メール送信（Mailtrap 前提）
+## 使用技術（実行環境）
 
-- Mailer: `smtp`
-- Host: `sandbox.smtp.mailtrap.io`
-- Port: `2525`
-- Scheme: `null`（STARTTLS 自動交渉）
-# exam-kintai
+- PHP: 8.3（`composer.json`）
+- Laravel: 13.x
+- Laravel Fortify: 1.36+
+- Livewire: 4.2+
+- MySQL: 8.4（Docker）
+- phpMyAdmin: 5.2（Docker）
+- Docker Compose / Laravel Sail
+
+## 各種 URL
+
+- アプリ: `http://localhost`（`/` は `/attendance` へリダイレクト）
+- 一般ログイン: `http://localhost/login`
+- 会員登録: `http://localhost/register`
+- 管理者ログイン: `http://localhost/admin/login`
+- 申請一覧: `http://localhost/stamp_correction_request/list`
+- phpMyAdmin: `http://localhost:8080`
+- Mailtrap Inbox: `https://mailtrap.io/inboxes`
+
+## デモユーザー
+
+`make up`（または `make fresh`）実行後に利用可能:
+
+- 一般ユーザー: `user1@example.com` 〜 `user10@example.com`
+- 管理者: `admin1@example.com` 〜 `admin3@example.com`
+- 共通パスワード: `Coachtech777`
+
+## 設計資料
+
+- 画面/設計図: [`attendance.png`](attendance.png)
+- テーブル： [`tables.png`](tables.png)

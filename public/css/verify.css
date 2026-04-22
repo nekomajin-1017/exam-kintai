@@ -1,0 +1,109 @@
+.verify-shell {
+    background: var(--white);
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 0 80px;
+}
+
+.verify-card {
+    width: min(520px, 100%);
+    padding: 30px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateY(-28px);
+}
+
+.verify-text {
+    width: 100%;
+    margin: 0 auto;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--black);
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.verify-line {
+    display: inline-block;
+    width: max-content;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.verify-open-mail {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    padding: 13px 20px;
+    border: 1px solid #8c8c8c;
+    border-radius: 3px;
+    background: #d9d9d9;
+    color: var(--black);
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 34px;
+}
+
+.verify-resend-link {
+    margin-top: 30px;
+    border: none;
+    background: transparent;
+    color: var(--blue);
+    font-size: 20px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.verify-card .field-error {
+    margin-top: 8px;
+    font-size: 1rem;
+    color: var(--red);
+}
+
+.status-message {
+    margin-top: 20px;
+    color: #1b7f3b;
+    font-size: 18px;
+}
+
+@media (max-width: 900px) {
+    .verify-shell {
+        min-height: auto;
+        padding: 24px 0 48px;
+    }
+
+    .verify-card {
+        padding: 20px;
+        transform: none;
+    }
+
+    .verify-text {
+        font-size: 16px;
+    }
+
+    .verify-open-mail {
+        min-width: 200px;
+        font-size: 16px;
+    }
+
+    .verify-resend-link {
+        font-size: 18px;
+    }
+
+    .status-message {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .verify-line {
+        white-space: normal;
+    }
+}

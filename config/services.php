@@ -35,4 +35,6 @@ return [
         ],
     ],
 
+    'mail_ui_url' => env('MAIL_UI_URL', 'https://mailtrap.io/inboxes'),
+
 ];

@@ -1,0 +1,195 @@
+.detail-page-content {
+    width: min(70%, 980px);
+    margin: 0 auto;
+    --time-input-width: 150px;
+    --time-separator-width: 1em;
+    --time-gap: 24px;
+    --time-range-width: calc((var(--time-input-width) * 2) + var(--time-separator-width) + (var(--time-gap) * 2));
+}
+
+.detail-page-content .application-form {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--white);
+    gap: 0;
+}
+
+.detail-page-content .detail-table {
+
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 1px solid var(--slight-gray);
+    border-radius: 5px;
+}
+
+.detail-page-content .table-row {
+    border-bottom: 1px solid var(--slight-gray);
+}
+
+.detail-page-content .table-header {
+    width: 220px;
+    height: 55px;
+    padding: 10px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--dark-gray);
+    white-space: nowrap;
+}
+.detail-page-content .table-data {
+    padding: 10px 24px;
+    height: 50px;
+    font-size: 1.4rem;
+    color: var(--dark-gray);
+    vertical-align: middle;
+}
+
+.detail-page-content .time-range {
+    display: grid;
+    grid-template-columns: var(--time-input-width) 1fr var(--time-input-width);
+    align-items: center;
+    width: min(100%, 520px);
+    max-width: 100%;
+    margin: 0;
+}
+
+.detail-page-content .time-input {
+    width: var(--time-input-width);
+    height: 2.2rem;
+    padding: 0 8px;
+    font-size: 1.2rem;
+    box-sizing: border-box;
+}
+
+.detail-page-content .time-range span {
+    text-align: center;
+}
+
+.detail-page-content .time-input-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.detail-page-content .time-static-value {
+    display: inline-block;
+    font-size: 1.3rem;
+    line-height: 2.2rem;
+}
+
+.detail-page-content .reason-input {
+    display: block;
+    width: min(100%, 520px);
+    max-width: 100%;
+    min-height: 7em;
+    padding: 10px;
+    line-height: 1.4;
+    font-size: 1.3rem;
+    resize: vertical;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.detail-page-content .reason-input-col {
+    width: min(100%, 520px);
+}
+
+.detail-page-content .reason-static {
+    width: min(100%, 520px);
+    min-height: 7em;
+    font-size: 1.3rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.detail-page-content .submit-button {
+    padding: 5px 30px;
+    font-size: 1.3rem;
+    color: var(--white);
+    background-color: var(--black);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.detail-page-content .submit-button:disabled {
+    background-color: var(--dark-gray);
+    cursor: not-allowed;
+}
+
+.detail-page-content .field-error {
+    font-size: 1rem;
+    color: var(--red);
+    line-height: 1.4;
+}
+
+.detail-page-content .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 20px 16px 12px;
+    background-color: var(--slight-gray);
+}
+
+@media (max-width: 1200px) {
+    .detail-page-content .table-header {
+        width: 170px;
+    }
+
+    .detail-page-content .table-data {
+        padding: 10px 12px;
+    }
+}
+
+@media (max-width: 900px) {
+    .detail-page-content {
+        --time-input-width: 110px;
+        --time-gap: 16px;
+    }
+
+    .detail-page-content .title {
+        font-size: 1.5rem;
+    }
+
+    .detail-page-content .table-header {
+        width: 150px;
+        font-size: 1.2rem;
+    }
+
+    .detail-page-content .table-data {
+        font-size: 1.2rem;
+        padding: 10px 10px;
+    }
+}
+
+@media (max-width: 640px) {
+    .detail-page-content {
+        --time-input-width: 92px;
+        --time-gap: 8px;
+    }
+
+    .detail-page-content .table-header {
+        width: 120px;
+        font-size: 1.1rem;
+    }
+
+    .detail-page-content .table-data {
+        font-size: 1.1rem;
+        padding: 8px;
+    }
+
+    .detail-page-content .reason-input {
+        min-height: 5em;
+        font-size: 1rem;
+    }
+
+    .detail-page-content .form-actions {
+        padding: 10px;
+    }
+}
+
+.detail-page-content .progress-message {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    color: var(--red);
+    text-align: right;
+}

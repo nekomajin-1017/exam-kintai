@@ -1,0 +1,99 @@
+.app-body {
+    --black: #111111;
+    --white: #ffffff;
+    --white-gray: #f5f5f5;
+    --slight-gray: #f2f2f2;
+    --gray: #bdbdbd;
+    --dark-gray: #6e6e6e;
+    --red: #ff5555;
+    --blue: #0073cc;
+    font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    color: var(--black);
+    background: var(--slight-gray);
+    min-height: 100vh;
+}
+
+.img-fluid {
+    max-width: 100%;
+    display: block;
+}
+
+.header {
+    background: var(--black);
+    color: var(--white);
+    height: 80px;
+    padding: 0;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.header-inner {
+    width: min(1320px, 96%);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.logo-img {
+    height: 32px;
+}
+
+
+.nav-list {
+    font-size: 1.5rem;
+    display: flex;
+    gap: 20px;
+}
+
+.header-nav-item {
+    position: relative;
+}
+
+.nav-link,
+.nav-link:visited {
+    color: var(--white);
+    text-decoration: none;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+.main {
+    width: min(1200px, 92%);
+    margin: 0 auto;
+    padding: 30px 0 80px;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 10px 0 20px;
+}
+
+.title::before {
+    content: " ";
+    width: 20px;
+    height: 35px;
+    background-color: var(--black);
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: var(--black);
+}

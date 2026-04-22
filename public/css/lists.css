@@ -1,0 +1,144 @@
+.calendar-pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--white);
+    border: 1px solid var(--slight-gray);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.calendar-pagination-button {
+    display: inline-block;
+    padding: 20px;
+    font-size: 1.3rem;
+    color: var(--dark-gray);
+    text-decoration: none;
+    background: var(--white);
+    cursor: pointer;
+}
+
+.calendar-pagination-center {
+    font-size: 1.9rem;
+    color: var(--black);
+    text-align: center;
+    font-weight: bold;
+    margin: 0;
+}
+
+.tabs {
+    border-bottom: 1px solid var(--black);
+}
+
+.tab{
+    color: var(--dark-gray);
+    font-weight: 400;
+    padding: 8px 0;
+    margin-left: 40px;
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+
+.is-active{
+    color: var(--black);
+    font-weight: 800;
+}
+
+.list-table-container {
+    margin-top: 20px;
+    background-color: var(--white);
+    border: 1px solid var(--slight-gray);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.list-table-header {
+    background-color: var(--white);
+    border-bottom: 1px solid var(--slight-gray);
+    font-weight: bold;
+    font-size: 1.6rem;
+    color: var(--dark-gray)
+}
+
+.list-table-header-cell,
+.list-table-cell {
+    padding: 10px;
+    text-align: center;
+    font-size: 1.3rem;
+    color: var(--dark-gray)
+}
+
+.list-table-cell-nowrap {
+    white-space: nowrap;
+}
+
+.attendance-list-first-col {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+@media screen and (min-width: 1200px) {
+    .attendance-list-first-col {
+        white-space: nowrap;
+        overflow-wrap: normal;
+    }
+}
+
+.list-table-row {
+    border-bottom: 1px solid var(--slight-gray);
+}
+
+.detail-button {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--black);
+    text-decoration: none;
+}
+
+.csv-download{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.csv-download-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    color: var(--white);
+    background-color: var(--black);
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+@media screen and (max-width: 768px) {
+    .attendance-list-wrap .list-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .attendance-list-wrap .list-table-header-cell:first-child,
+    .attendance-list-wrap .list-table-cell:first-child {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        width: auto;
+    }
+
+    .attendance-list-first-col {
+        font-size: 1.1rem;
+    }
+
+    .attendance-list-wrap .list-table-header-cell:not(:first-child),
+    .attendance-list-wrap .list-table-cell:not(:first-child) {
+        font-size: 1.1rem;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+}
