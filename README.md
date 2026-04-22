@@ -66,3 +66,4 @@ GitHub Actions で `make init` のスモークテストを実行します。
 - Host: `sandbox.smtp.mailtrap.io`
 - Port: `2525`
 - Scheme: `null`（STARTTLS 自動交渉）
+# exam-kintai
