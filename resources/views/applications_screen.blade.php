@@ -5,15 +5,11 @@
 @endsection
 
 @section('content')
-    <h1 class="title">申請一覧</h1>
-
-    @include('partials.layout.tab', [
-        'tabRoute' => $tabRoute ?? null,
-    ])
-
-    @include('partials.application_list_table', [
+    @livewire('applications-screen', [
+        'tab' => $tab ?? 'pending',
         'applications' => $applications,
         'isAdmin' => $isAdmin ?? false,
+        'tabRoute' => $tabRoute ?? null,
         'detailRouteName' => $detailRouteName,
     ])
 @endsection

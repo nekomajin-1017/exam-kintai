@@ -140,6 +140,32 @@ class AttendanceWorkflow
         ]);
     }
 
+    public function updateAttendance(Attendance $attendance, array $payload): void
+    {
+        // 勤務日を基準日に固定する。
+        $baseDate = $this->baseDate($attendance);
+
+        // 出退勤時刻と備考を更新する。
+        $attendance->update([
+            'check_in_at' => ! empty($payload['start_time'])
+                ? CarbonImmutable::parse($baseDate . ' ' . $payload['start_time'])
+                : null,
+            'check_out_at' => ! empty($payload['end_time'])
+                ? CarbonImmutable::parse($baseDate . ' ' . $payload['end_time'])
+                : null,
+            'remarks' => $payload['reason'] ?? null,
+        ]);
+
+        // 休憩入力を正規化して日時へ変換する。
+        $breakRows = $this->requestBreakRows($baseDate, $payload);
+
+        // 既存休憩を削除して再作成する。
+        $attendance->breaks()->delete();
+        if (! empty($breakRows)) {
+            $attendance->breaks()->createMany($breakRows);
+        }
+    }
+
     private function baseDate(Attendance $attendance): string
     {
         // 勤務日を基準日に固定する。

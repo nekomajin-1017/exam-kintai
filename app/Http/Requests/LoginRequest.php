@@ -8,11 +8,13 @@ class LoginRequest extends FormRequest
 {
     public function authorize()
     {
+        // 未認証ユーザーが利用する入力なので常に許可する。
         return true;
     }
 
     public function rules()
     {
+        // Fortify認証前の基本バリデーション。
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
@@ -21,6 +23,7 @@ class LoginRequest extends FormRequest
 
     public function messages()
     {
+        // ログイン画面向けメッセージ。
         return [
             'email.required' => 'メールアドレスを入力してください',
             'email.email' => '有効なメールアドレスを入力してください',

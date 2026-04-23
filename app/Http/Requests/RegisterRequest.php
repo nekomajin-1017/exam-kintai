@@ -9,11 +9,13 @@ class RegisterRequest extends FormRequest
 {
     public function authorize()
     {
+        // 会員登録フォームはゲスト想定で常に許可する。
         return true;
     }
 
     public function rules()
     {
+        // 登録時に必要な必須/形式/重複チェック。
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
@@ -23,6 +25,7 @@ class RegisterRequest extends FormRequest
 
     public function messages()
     {
+        // 登録画面向けメッセージ。
         return [
             'name.required' => 'お名前を入力してください',
             'email.required' => 'メールアドレスを入力してください',

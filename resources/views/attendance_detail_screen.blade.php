@@ -5,11 +5,8 @@
 @endsection
 
 @section('content')
-    @include('partials.attendance_detail_page', [
+    @livewire('attendance-detail-screen', [
         'detailFields' => $detailFields ?? [],
-        'attendance' => $attendance,
-        'break' => $break,
-        'breaks' => $breaks ?? collect(),
         'readonly' => $readonly ?? false,
         'plainReadonly' => $plainReadonly ?? false,
         'formAction' => $formAction ?? null,

@@ -83,6 +83,47 @@ class AttendanceCorrectionRequest extends FormRequest
                     $validator->errors()->add("break_end_at.{$index}", '休憩終了時刻だけは入力できません');
                 }
             }
+
+            // 休憩2以降は、それ以前の休憩すべてと重複不可。
+            for ($index = 1; $index < $rowCount; $index++) {
+                $currentStart = $this->parseHm($starts[$index] ?? null);
+                $currentEnd = $this->parseHm($ends[$index] ?? null);
+
+                // 開始/終了が揃っている行だけ重複判定する。
+                if (! $currentStart || ! $currentEnd) {
+                    continue;
+                }
+
+                for ($previousIndex = 0; $previousIndex < $index; $previousIndex++) {
+                    $previousStart = $this->parseHm($starts[$previousIndex] ?? null);
+                    $previousEnd = $this->parseHm($ends[$previousIndex] ?? null);
+
+                    // 比較対象の前行が未入力ならスキップ。
+                    if (! $previousStart || ! $previousEnd) {
+                        continue;
+                    }
+
+                    // [start, end) 同士で重複を判定する。
+                    $overlapsPreviousBreak = $currentStart->lt($previousEnd) && $currentEnd->gt($previousStart);
+                    if ($overlapsPreviousBreak) {
+                        $validator->errors()->add("break_start_at.{$index}", '休憩時間が他の休憩と重複しています');
+                        break;
+                    }
+                }
+            }
         });
+    }
+
+    private function parseHm(mixed $value): ?Carbon
+    {
+        if (! is_string($value) || blank($value)) {
+            return null;
+        }
+
+        try {
+            return Carbon::createFromFormat('H:i', $value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

@@ -10,6 +10,7 @@ trait BuildsAttendanceViewData
 {
     protected function buildMonthNavigation(CarbonInterface $month, string $routeName, array $params = []): array
     {
+        // 対象月と前後月を算出する。
         $current = $month->copy()->startOfMonth();
         $previous = $current->copy()->subMonth();
         $next = $current->copy()->addMonth();
@@ -25,6 +26,7 @@ trait BuildsAttendanceViewData
 
     protected function buildDayNavigation(CarbonInterface $day, string $routeName, array $params = []): array
     {
+        // 対象日と前後日を算出する。
         $current = $day->copy()->startOfDay();
         $previous = $current->copy()->subDay();
         $next = $current->copy()->addDay();
@@ -40,33 +42,36 @@ trait BuildsAttendanceViewData
 
     protected function buildDetailFromCorrection(object $correction): array
     {
+        // 申請詳細画面に必要な関連をロードする。
         $correction->load('attendance.user', 'attendance.breaks', 'breakCorrections');
 
+        // 申請値で勤怠表示値を上書きする。
         $attendance = $correction->attendance;
         $attendance->check_in_at = $correction->requested_check_in_at ?? $attendance->check_in_at;
         $attendance->check_out_at = $correction->requested_check_out_at ?? $attendance->check_out_at;
         $attendance->remarks = $correction->reason ?? $attendance->remarks;
 
+        // 休憩修正は開始時刻順で表示する。
         $breaks = $correction->breakCorrections->sortBy('break_start_at')->values();
 
         return [
             'attendance' => $attendance,
             'breaks' => $breaks,
-            'break' => $breaks->last(),
         ];
     }
 
     protected function buildAttendanceDetailFields(
         object $attendance,
         mixed $breaks,
-        mixed $break,
         bool $readonly,
         bool $plainReadonly
     ): array {
-        $breakRows = $this->resolveBreakRows($breaks, $break);
+        // 入力表示用の休憩行を生成する。
+        $breakRows = $this->resolveBreakRows($breaks);
         if (count($breakRows) === 0) {
             $breakRows[] = ['start' => '', 'end' => ''];
         }
+        // 編集可能時は末尾に空行を追加する。
         if (! $readonly) {
             $breakRows[] = ['start' => '', 'end' => ''];
         }
@@ -83,8 +88,9 @@ trait BuildsAttendanceViewData
         ];
     }
 
-    private function resolveBreakRows(mixed $breaks, mixed $break): array
+    private function resolveBreakRows(mixed $breaks): array
     {
+        // バリデーションエラー時は old 入力を最優先で表示する。
         $oldStarts = old('break_start_at');
         $oldEnds = old('break_end_at');
 
@@ -104,6 +110,7 @@ trait BuildsAttendanceViewData
             return $rows;
         }
 
+        // DB値から休憩行を組み立てる。
         $rows = [];
         $breakCollection = $breaks instanceof Collection ? $breaks : collect($breaks);
         if ($breakCollection->count() > 0) {
@@ -117,23 +124,17 @@ trait BuildsAttendanceViewData
             return $rows;
         }
 
-        if ($break) {
-            $rows[] = [
-                'start' => $this->formatHm($break->break_start_at),
-                'end' => $this->formatHm($break->break_end_at),
-            ];
-        }
-
         return $rows;
     }
 
     private function formatHm(mixed $dateTime): string
     {
+        // 未入力は空文字を返す。
         if (! $dateTime) {
             return '';
         }
 
+        // 画面表示用に HH:ii 形式へ整形する。
         return Carbon::parse($dateTime)->format('H:i');
     }
 }
-

@@ -15,11 +15,14 @@ class BreakStartWithinShiftRule implements ValidationRule, DataAwareRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        // 休憩開始時刻をパースする。
         $breakStart = $this->parseTime($value);
+        // 休憩開始未入力時は本ルールをスキップする。
         if (! $breakStart) {
             return;
         }
 
+        // 勤務時刻と比較して勤務内かを判定する。
         $start = $this->parseTime($this->data[self::KEY_START_TIME] ?? null);
         $end = $this->parseTime($this->data[self::KEY_END_TIME] ?? null);
 
