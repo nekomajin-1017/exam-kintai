@@ -16,6 +16,8 @@
         'firstColumnType' => $firstColumnType ?? 'date',
         'detailRouteName' => $detailRouteName,
         'allowMissingDetail' => $allowMissingDetail ?? false,
+        'missingDetailRouteName' => $missingDetailRouteName ?? 'attendance.detail.date',
+        'missingDetailRouteParams' => $missingDetailRouteParams ?? [],
         'csvDownloadUrl' => $csvDownloadUrl ?? null,
     ])
 @endsection

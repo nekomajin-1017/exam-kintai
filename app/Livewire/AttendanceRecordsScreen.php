@@ -25,6 +25,8 @@ class AttendanceRecordsScreen extends Component
     public string $firstColumnType = 'date';
     public string $detailRouteName = 'attendance.detail';
     public bool $allowMissingDetail = false;
+    public string $missingDetailRouteName = 'attendance.detail.date';
+    public array $missingDetailRouteParams = [];
 
     // 管理者画面でのみ利用するCSVダウンロードURL。
     public ?string $csvDownloadUrl = null;
@@ -40,6 +42,8 @@ class AttendanceRecordsScreen extends Component
         string $firstColumnType = 'date',
         string $detailRouteName = 'attendance.detail',
         bool $allowMissingDetail = false,
+        string $missingDetailRouteName = 'attendance.detail.date',
+        array $missingDetailRouteParams = [],
         ?string $csvDownloadUrl = null,
     ): void {
         // mount 入力を描画しやすい形へ整形して保持する。
@@ -53,6 +57,8 @@ class AttendanceRecordsScreen extends Component
         $this->firstColumnType = $firstColumnType;
         $this->detailRouteName = $detailRouteName;
         $this->allowMissingDetail = $allowMissingDetail;
+        $this->missingDetailRouteName = $missingDetailRouteName;
+        $this->missingDetailRouteParams = $missingDetailRouteParams;
         $this->csvDownloadUrl = $csvDownloadUrl;
     }
 

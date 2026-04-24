@@ -60,6 +60,9 @@ Route::middleware(['auth', 'can:access-admin'])->group(function () {
             Route::get('/attendance/{attendance}', 'adminDetail')->name('attendance.detail');
             Route::put('/attendance/{attendance}', 'adminUpdate')->name('attendance.update');
             Route::get('/staff/list', 'adminStaff')->name('staff_list');
+            Route::get('/attendance/staff/{user}/detail/date/{date}', 'adminDetailByDate')
+                ->where('date', '\d{4}-\d{2}-\d{2}')
+                ->name('attendance.detail.date');
             Route::get('/attendance/staff/{user}', 'adminStaffList')->name('attendance.list');
             Route::get('/attendance/staff/{user}/csv', 'adminStaffCsv')->name('attendance.list.csv');
         });

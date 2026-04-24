@@ -2,6 +2,8 @@
     $firstColumnType = $firstColumnType ?? 'date';
     $firstColumnLabel = $firstColumnType === 'name' ? '名前' : '日付';
     $allowMissingDetail = $allowMissingDetail ?? false;
+    $missingDetailRouteName = $missingDetailRouteName ?? 'attendance.detail.date';
+    $missingDetailRouteParams = $missingDetailRouteParams ?? [];
 @endphp
 
 <div class="attendance-list-wrap">
@@ -32,7 +34,7 @@
                     <td class="list-table-cell">{{ ($attendance->check_in_at && $attendance->check_out_at) ? App\Helpers\TimeHelper::formatSeconds($totalSeconds) : 'ー' }}</td>
                     <td class="list-table-cell">
                         @if ($allowMissingDetail && !$attendance->exists)
-                            <a class="detail-button" href="{{ route('attendance.detail.date', ['date' => \Carbon\Carbon::parse($attendance->work_date)->toDateString()]) }}">詳細</a>
+                            <a class="detail-button" href="{{ route($missingDetailRouteName, array_merge($missingDetailRouteParams, ['date' => \Carbon\Carbon::parse($attendance->work_date)->toDateString()])) }}">詳細</a>
                         @else
                             <a class="detail-button" href="{{ route($detailRouteName, $attendance) }}">詳細</a>
                         @endif

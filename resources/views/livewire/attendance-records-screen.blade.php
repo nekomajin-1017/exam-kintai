@@ -16,6 +16,8 @@
         'firstColumnType' => $firstColumnType,
         'detailRouteName' => $detailRouteName,
         'allowMissingDetail' => $allowMissingDetail,
+        'missingDetailRouteName' => $missingDetailRouteName,
+        'missingDetailRouteParams' => $missingDetailRouteParams,
     ])
 
     {{-- 管理者向けCSV出力。URLがある場合のみ表示する。 --}}

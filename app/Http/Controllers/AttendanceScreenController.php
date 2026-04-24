@@ -152,6 +152,27 @@ class AttendanceScreenController extends Controller
         );
     }
 
+    public function adminDetailByDate(User $user, string $date)
+    {
+        try {
+            $workDate = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+        } catch (\Exception $exception) {
+            abort(404);
+        }
+
+        $attendance = Attendance::query()->firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'work_date' => $workDate,
+            ],
+            [
+                'attendance_status_code' => AttendanceStatusCode::OFF,
+            ]
+        );
+
+        return $this->adminDetail($attendance);
+    }
+
     public function adminUpdate(AttendanceCorrectionRequest $request, Attendance $attendance)
     {
         $this->authorize('update', $attendance);
@@ -175,6 +196,7 @@ class AttendanceScreenController extends Controller
             userId: (int) $user->id,
             month: $month,
             withUser: true,
+            includeMissingDates: true,
         );
         $monthNavigation = $this->buildMonthNavigation($month, 'admin.attendance.list', ['user' => $user->id]);
 
@@ -185,7 +207,9 @@ class AttendanceScreenController extends Controller
             ...$monthNavigation,
             'firstColumnType' => 'date',
             'detailRouteName' => 'admin.attendance.detail',
-            'allowMissingDetail' => false,
+            'allowMissingDetail' => true,
+            'missingDetailRouteName' => 'admin.attendance.detail.date',
+            'missingDetailRouteParams' => ['user' => $user->id],
             'csvDownloadUrl' => route('admin.attendance.list.csv', ['user' => $user->id, 'month' => $month->format('Y-m')]),
         ]);
     }
@@ -196,6 +220,7 @@ class AttendanceScreenController extends Controller
         $staffAttendances = $this->attendanceListQuery->forUserMonth(
             userId: (int) $user->id,
             month: $month,
+            includeMissingDates: true,
         );
 
         $filename = sprintf('attendances_%s_%s.csv', preg_replace('/\s+/', '_', $user->name) ?? 'user', $month->format('Y-m'));
