@@ -5,16 +5,8 @@ use App\Http\Controllers\CorrectionRequestController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
-$stampActionMethods = [
-    'check_in' => 'checkIn',
-    'check_out' => 'checkOut',
-    'break_in' => 'breakIn',
-    'break_out' => 'breakOut',
-];
-
 Route::redirect('/', '/attendance');
 
-// Guest only
 Route::middleware('guest')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -22,7 +14,6 @@ Route::middleware('guest')->group(function () {
     });
 });
 
-// Auth required (shared)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -30,13 +21,13 @@ Route::middleware('auth')->group(function () {
         ->name('stamp_correction_requests.list');
 });
 
-// User (email verified)
-Route::middleware(['auth', 'verified'])->group(function () use ($stampActionMethods) {
-    Route::prefix('attendance')->name('attendance.')->controller(AttendanceScreenController::class)->group(function () use ($stampActionMethods) {
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('attendance')->name('attendance.')->controller(AttendanceScreenController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        foreach ($stampActionMethods as $path => $method) {
-            Route::post("/{$path}", $method)->name($path);
-        }
+        Route::post('/check_in', 'checkIn')->name('check_in');
+        Route::post('/check_out', 'checkOut')->name('check_out');
+        Route::post('/break_in', 'breakIn')->name('break_in');
+        Route::post('/break_out', 'breakOut')->name('break_out');
         Route::get('/list', 'userList')->name('list');
         Route::get('/detail/date/{date}', 'showUserDetailByDate')
             ->where('date', '\d{4}-\d{2}-\d{2}')
@@ -52,7 +43,6 @@ Route::middleware(['auth', 'verified'])->group(function () use ($stampActionMeth
     });
 });
 
-// Admin only
 Route::middleware(['auth', 'can:access-admin'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(AttendanceScreenController::class)->group(function () {

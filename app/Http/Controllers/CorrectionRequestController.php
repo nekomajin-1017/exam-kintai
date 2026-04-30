@@ -7,7 +7,6 @@ use App\Http\Controllers\Concerns\BuildsAttendanceViewData;
 use App\Http\Requests\AttendanceCorrectionRequest;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
-use App\Support\ActorContext;
 use App\Workflows\AttendanceWorkflow;
 use Illuminate\Http\Request;
 
@@ -15,10 +14,7 @@ class CorrectionRequestController extends Controller
 {
     use BuildsAttendanceViewData;
 
-    public function __construct(private AttendanceWorkflow $attendanceWorkflow)
-    {
-        // コンストラクタで必要なクラスを受け取るだけ。
-    }
+    public function __construct(private AttendanceWorkflow $attendanceWorkflow) {}
 
     public function store(AttendanceCorrectionRequest $request, Attendance $attendance)
     {
@@ -35,14 +31,14 @@ class CorrectionRequestController extends Controller
 
     public function list(Request $request)
     {
-        $context = ActorContext::fromUser($request->user());
+        $isAdmin = (bool) $request->user()?->is_admin;
         $tab = $request->query('tab', 'pending');
 
-        if (! $context->isAdmin() && ! $request->user()?->hasVerifiedEmail()) {
+        if (! $isAdmin && ! $request->user()?->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
-        $applications = $context->isAdmin()
+        $applications = $isAdmin
             ? AttendanceCorrection::with(['attendance.user', 'requestUser'])->forTab($tab)->latest()->get()
             : AttendanceCorrection::with(['attendance.user'])
                 ->where('request_user_id', $request->user()->id)
@@ -51,12 +47,12 @@ class CorrectionRequestController extends Controller
                 ->get();
 
         return view('applications_screen', [
-            'headerVariant' => $context->headerVariant(),
+            'headerVariant' => $isAdmin ? 'admin' : 'user',
             'tab' => $tab,
             'applications' => $applications,
-            'isAdmin' => $context->isAdmin(),
+            'isAdmin' => $isAdmin,
             'tabRoute' => 'stamp_correction_requests.list',
-            'detailRouteName' => $context->isAdmin() ? 'admin.attendance.approve' : 'stamp_correction_request.detail',
+            'detailRouteName' => $isAdmin ? 'admin.attendance.approve' : 'stamp_correction_request.detail',
         ]);
     }
 
@@ -74,7 +70,7 @@ class CorrectionRequestController extends Controller
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => ActorContext::USER->headerVariant(),
+            'headerVariant' => 'user',
             'detailFields' => $detailFields,
             'readonly' => ! $isApproved,
             'plainReadonly' => ! $isApproved,
@@ -99,7 +95,7 @@ class CorrectionRequestController extends Controller
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => ActorContext::ADMIN->headerVariant(),
+            'headerVariant' => 'admin',
             'detailFields' => $detailFields,
             'readonly' => true,
             'plainReadonly' => true,

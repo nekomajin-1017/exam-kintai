@@ -13,7 +13,6 @@ class AttendanceSeeder extends Seeder
 {
     private const ATTENDANCE_DAYS = 240;
 
-    /** @var array<int, array<string, bool>> */
     private array $holidayCache = [];
 
     public function run(): void
@@ -35,7 +34,6 @@ class AttendanceSeeder extends Seeder
         }
     }
 
-    /** @return array<int, string> */
     private function recentBusinessDates(int $count): array
     {
         $dates = [];
@@ -56,7 +54,6 @@ class AttendanceSeeder extends Seeder
         return $date->isWeekend() || isset($this->japaneseHolidays((int) $date->year)[$date->toDateString()]);
     }
 
-    /** @return array<string, bool> */
     private function japaneseHolidays(int $year): array
     {
         if (isset($this->holidayCache[$year])) {

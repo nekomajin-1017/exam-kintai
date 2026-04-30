@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Constants\AttendanceStatusCode;
-use App\Helpers\TimeHelper;
 use App\Http\Controllers\Concerns\BuildsAttendanceViewData;
 use App\Http\Requests\AttendanceCorrectionRequest;
 use App\Models\Attendance;
 use App\Models\User;
 use App\Queries\AttendanceListQuery;
-use App\Support\ActorContext;
+use App\Services\DurationService;
 use App\Workflows\AttendanceWorkflow;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,9 +21,7 @@ class AttendanceScreenController extends Controller
     public function __construct(
         private AttendanceWorkflow $attendanceWorkflow,
         private AttendanceListQuery $attendanceListQuery,
-    ) {
-        // コンストラクタで必要なクラスを受け取るだけ。
-    }
+    ) {}
 
     public function index()
     {
@@ -35,11 +32,11 @@ class AttendanceScreenController extends Controller
 
         $attendance = Attendance::query()
             ->where('user_id', $user->id)
-            ->where('work_date', now()->toDateString())
+            ->whereDate('work_date', now()->toDateString())
             ->first();
 
         return view('attendance', [
-            'headerVariant' => ActorContext::USER->headerVariant(),
+            'headerVariant' => 'user',
             'attendance' => $attendance,
             'statusCode' => $attendance?->attendance_status_code ?? AttendanceStatusCode::OFF,
         ]);
@@ -76,7 +73,7 @@ class AttendanceScreenController extends Controller
         $monthNavigation = $this->buildMonthNavigation($month, 'attendance.list');
 
         return view('attendance_records_screen', [
-            'headerVariant' => ActorContext::USER->headerVariant(),
+            'headerVariant' => 'user',
             'title' => '勤怠一覧',
             'attendances' => $attendances,
             ...$monthNavigation,
@@ -91,7 +88,7 @@ class AttendanceScreenController extends Controller
         $this->authorize('view', $attendance);
 
         return $this->renderAttendanceDetail(
-            context: ActorContext::USER,
+            headerVariant: 'user',
             attendance: $attendance,
             formAction: route('attendance.request', $attendance),
             submitLabel: '修正',
@@ -128,7 +125,7 @@ class AttendanceScreenController extends Controller
         $dayNavigation = $this->buildDayNavigation($date, 'admin.dashboard');
 
         return view('attendance_records_screen', [
-            'headerVariant' => ActorContext::ADMIN->headerVariant(),
+            'headerVariant' => 'admin',
             'title' => '勤怠一覧',
             'attendances' => $dailyAttendances,
             ...$dayNavigation,
@@ -143,7 +140,7 @@ class AttendanceScreenController extends Controller
         $this->authorize('view', $attendance);
 
         return $this->renderAttendanceDetail(
-            context: ActorContext::ADMIN,
+            headerVariant: 'admin',
             attendance: $attendance,
             formAction: route('admin.attendance.update', $attendance),
             submitLabel: '修正',
@@ -184,7 +181,7 @@ class AttendanceScreenController extends Controller
     public function adminStaff()
     {
         return view('admin_attendance_staff', [
-            'headerVariant' => ActorContext::ADMIN->headerVariant(),
+            'headerVariant' => 'admin',
             'users' => User::query()->where('is_admin', false)->orderBy('name')->get(),
         ]);
     }
@@ -201,7 +198,7 @@ class AttendanceScreenController extends Controller
         $monthNavigation = $this->buildMonthNavigation($month, 'admin.attendance.list', ['user' => $user->id]);
 
         return view('attendance_records_screen', [
-            'headerVariant' => ActorContext::ADMIN->headerVariant(),
+            'headerVariant' => 'admin',
             'title' => "{$user->name}さんの勤怠一覧",
             'attendances' => $staffAttendances,
             ...$monthNavigation,
@@ -239,8 +236,8 @@ class AttendanceScreenController extends Controller
                     Carbon::parse($attendance->work_date)->format('Y-m-d'),
                     $attendance->check_in_at ? Carbon::parse($attendance->check_in_at)->format('H:i') : '',
                     $attendance->check_out_at ? Carbon::parse($attendance->check_out_at)->format('H:i') : '',
-                    TimeHelper::formatSeconds($attendance->calculated_break_seconds ?? 0),
-                    ($attendance->check_in_at && $attendance->check_out_at) ? TimeHelper::formatSeconds($attendance->calculated_total_seconds ?? 0) : '',
+                    DurationService::formatSeconds($attendance->calculated_break_seconds ?? 0),
+                    ($attendance->check_in_at && $attendance->check_out_at) ? DurationService::formatSeconds($attendance->calculated_total_seconds ?? 0) : '',
                     $attendance->remarks ?? '',
                 ]);
             }
@@ -249,7 +246,7 @@ class AttendanceScreenController extends Controller
     }
 
     private function renderAttendanceDetail(
-        ActorContext $context,
+        string $headerVariant,
         Attendance $attendance,
         ?string $formAction,
         ?string $submitLabel,
@@ -268,7 +265,7 @@ class AttendanceScreenController extends Controller
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => $context->headerVariant(),
+            'headerVariant' => $headerVariant,
             'detailFields' => $detailFields,
             'readonly' => $readonly,
             'plainReadonly' => $plainReadonly,

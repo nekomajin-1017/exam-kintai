@@ -1,17 +1,6 @@
 # 勤怠管理アプリ（exam-kintai）
 
-勤怠打刻、勤怠修正申請、管理者承認を行う Web アプリケーションです。
-
-## 目次
-
-- [機能](#機能)
-- [セットアップ詳細](#セットアップ詳細)
-- [テスト実行](#テスト実行)
-- [使用技術（実行環境）](#使用技術実行環境)
-- [各種 URL](#各種-url)
-- [デモユーザー](#デモユーザー)
-- [設計資料](#設計資料)
-- [補足](#補足)
+勤怠打刻、勤怠修正申請、管理者承認を行うアプリケーションです。
 
 ## 機能
 
@@ -19,34 +8,51 @@
 - 管理者ログイン（`/admin/login`）
 - 打刻（出勤・退勤・休憩入・休憩戻）
 - 一般ユーザー勤怠一覧（月次）・勤怠詳細
-- 勤怠修正申請（休憩行含む）
+- 勤怠修正申請（複数休憩行対応）
 - 申請一覧（承認待ち / 承認済み）
 - 管理者による申請承認
 - 管理者による全体勤怠確認（日次）
 - 管理者によるスタッフ別月次勤怠確認・CSV出力
 
-## セットアップ詳細
+## セットアップ
 
-### 1. 事前準備
+### 1. 前提
 
 - Docker Desktop
-- GNU Make
-- Mailtrap アカウント（SMTP 認証情報）
+- Composer
+- Sail エイリアス
+- Mailtrap アカウント（メール認証確認用）
+
+Sail エイリアスを未設定の場合:
+
+```bash
+echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
+exec $SHELL
+```
 
 ### 2. 初期起動（推奨）
 
 ```bash
 git clone https://github.com/nekomajin-1017/exam-kintai.git
 cd exam-kintai
-make up
+cp .env.example .env
+composer install
+sail up -d --build
+sail artisan key:generate
+sail artisan migrate:fresh --seed
 ```
 
-`make up` の実行内容:
+通常起動:
 
-1. `.env` が無ければ `.env.example` をコピー
-2. `vendor/` が無ければ `composer install`
-3. Sail コンテナ起動
-4. `php artisan migrate:fresh --seed`
+```bash
+sail up -d
+```
+
+停止:
+
+```bash
+sail down
+```
 
 ### 3. メール設定（認証メール送信用）
 
@@ -66,34 +72,40 @@ MAIL_FROM_NAME="${APP_NAME}"
 設定反映:
 
 ```bash
-./vendor/bin/sail artisan config:clear
+sail artisan config:clear
 ```
 
 ## テスト実行
 
 ```bash
-make test
+sail test
 ```
 
-または:
+## 設計資料
 
-```bash
-./vendor/bin/sail test
-```
+### テーブル設計
+
+![テーブル設計](tables.png)
+
+### 画面/設計図
+
+![画面/設計図](attendance.png)
 
 ## 使用技術（実行環境）
 
-- PHP: 8.3（`composer.json`）
-- Laravel: 13.x
-- Laravel Fortify: 1.36+
-- Livewire: 4.2+
-- MySQL: 8.4（Docker）
-- phpMyAdmin: 5.2（Docker）
-- Docker Compose / Laravel Sail
+2026-04-28 時点（`composer.json` / `compose.yaml` ベース）:
 
-## 各種 URL
+- PHP: `^8.3`
+- Laravel: `^13.0`
+- Laravel Fortify: `^1.36`
+- MySQL: `8.4`（Docker）
+- phpMyAdmin: `5.2`（Docker）
 
-- アプリ: `http://localhost`（`/` は `/attendance` へリダイレクト）
+## 主要 URL
+
+- アプリ入口: `http://localhost`
+  - `/` は `/attendance` にリダイレクト
+  - 未ログイン時は `auth` ミドルウェアによりログイン画面へ遷移
 - 一般ログイン: `http://localhost/login`
 - 会員登録: `http://localhost/register`
 - 管理者ログイン: `http://localhost/admin/login`
@@ -103,13 +115,8 @@ make test
 
 ## デモユーザー
 
-`make up`（または `make fresh`）実行後に利用可能:
+`sail artisan migrate:fresh --seed` 実行後に利用可能:
 
 - 一般ユーザー: `user1@example.com` 〜 `user10@example.com`
-- 管理者: `admin1@example.com` 〜 `admin3@example.com`
+- 管理者: `admin1@example.com`, `admin2@example.com`
 - 共通パスワード: `Coachtech777`
-
-## 設計資料
-
-- 画面/設計図: [`attendance.png`](attendance.png)
-- テーブル： [`tables.png`](tables.png)

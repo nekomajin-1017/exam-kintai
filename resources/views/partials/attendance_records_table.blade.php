@@ -30,8 +30,8 @@
                     <td class="list-table-cell attendance-list-first-col">{{ $firstCellValue }}</td>
                     <td class="list-table-cell">{{ $attendance->check_in_at ? \Carbon\Carbon::parse($attendance->check_in_at)->format('H:i') : 'ー' }}</td>
                     <td class="list-table-cell">{{ $attendance->check_out_at ? \Carbon\Carbon::parse($attendance->check_out_at)->format('H:i') : 'ー' }}</td>
-                    <td class="list-table-cell">{{ $attendance->check_in_at ? App\Helpers\TimeHelper::formatSeconds($breakSeconds) : 'ー' }}</td>
-                    <td class="list-table-cell">{{ ($attendance->check_in_at && $attendance->check_out_at) ? App\Helpers\TimeHelper::formatSeconds($totalSeconds) : 'ー' }}</td>
+                    <td class="list-table-cell">{{ $attendance->check_in_at ? App\Services\DurationService::formatSeconds($breakSeconds) : 'ー' }}</td>
+                    <td class="list-table-cell">{{ ($attendance->check_in_at && $attendance->check_out_at) ? App\Services\DurationService::formatSeconds($totalSeconds) : 'ー' }}</td>
                     <td class="list-table-cell">
                         @if ($allowMissingDetail && !$attendance->exists)
                             <a class="detail-button" href="{{ route($missingDetailRouteName, array_merge($missingDetailRouteParams, ['date' => \Carbon\Carbon::parse($attendance->work_date)->toDateString()])) }}">詳細</a>

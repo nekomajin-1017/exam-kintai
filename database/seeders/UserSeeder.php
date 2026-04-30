@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 class UserSeeder extends Seeder
 {
     private const COMMON_PASSWORD = 'Coachtech777';
+
     private const USER_NAMES = [
         '田中 太郎',
         '佐藤 花子',

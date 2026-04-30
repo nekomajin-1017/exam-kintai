@@ -16,7 +16,7 @@ class AttendanceCorrectionFactory extends Factory
         $date = $this->faker->dateTimeBetween('-60 days', 'now');
         $checkIn = (clone $date)->setTime(9, 0);
         $checkOut = (clone $date)->setTime(18, 0);
-        $reason = $this->faker->randomElement(['申請理由①', '申請理由②','申請理由③']);
+        $reason = $this->faker->randomElement(['申請理由①', '申請理由②', '申請理由③']);
 
         return [
             'attendance_id' => Attendance::factory(),
