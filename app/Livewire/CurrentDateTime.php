@@ -6,9 +6,9 @@ use Livewire\Component;
 
 class CurrentDateTime extends Component
 {
-    public string $status = '';
+    public $status = '';
 
-    public function mount(string $status): void
+    public function mount($status)
     {
         $this->status = $status;
     }

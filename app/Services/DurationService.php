@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 
 class DurationService
 {
@@ -14,7 +15,7 @@ class DurationService
         return sprintf('%02d:%02d', $hours, $minutes);
     }
 
-    public function attach($attendance)
+    public function attach($attendance): void
     {
 
         $breakSeconds = $this->breakSeconds($attendance);
@@ -26,7 +27,7 @@ class DurationService
         $attendance->setAttribute('calculated_total_seconds', $totalSeconds);
     }
 
-    public function breakSeconds($attendance)
+    public function breakSeconds($attendance): int
     {
 
         $checkIn = $this->toWorkDate($attendance, $attendance->check_in_at);
@@ -64,7 +65,7 @@ class DurationService
         });
     }
 
-    public function workSeconds($attendance, $breakSeconds)
+    public function workSeconds($attendance, int $breakSeconds): int
     {
 
         $checkIn = $this->toWorkDate($attendance, $attendance->check_in_at);
@@ -78,7 +79,7 @@ class DurationService
         return max(0, $checkIn->diffInSeconds($checkOut) - (int) $breakSeconds);
     }
 
-    private function toWorkDate($attendance, $dateTime)
+    private function toWorkDate($attendance, $dateTime): ?CarbonInterface
     {
 
         if (! $dateTime) {

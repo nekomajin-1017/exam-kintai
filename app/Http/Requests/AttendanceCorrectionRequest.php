@@ -8,12 +8,12 @@ use Illuminate\Validation\Validator;
 
 class AttendanceCorrectionRequest extends FormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
-    public function rules()
+    public function rules(): array
     {
         return [
             'start_time' => ['nullable', 'date_format:H:i'],
@@ -26,7 +26,7 @@ class AttendanceCorrectionRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
             'reason.required' => '備考を記入してください',
@@ -85,60 +85,60 @@ class AttendanceCorrectionRequest extends FormRequest
 
     private function validateBreakRows(Validator $validator): void
     {
-            $starts = is_array($this->input('break_start_at')) ? $this->input('break_start_at') : [];
-            $ends = is_array($this->input('break_end_at')) ? $this->input('break_end_at') : [];
-            $rowCount = max(count($starts), count($ends));
-            $workStart = $this->parseHm($this->input('start_time'));
-            $workEnd = $this->parseHm($this->input('end_time'));
+        $starts = is_array($this->input('break_start_at')) ? $this->input('break_start_at') : [];
+        $ends = is_array($this->input('break_end_at')) ? $this->input('break_end_at') : [];
+        $rowCount = max(count($starts), count($ends));
+        $workStart = $this->parseHm($this->input('start_time'));
+        $workEnd = $this->parseHm($this->input('end_time'));
 
-            for ($index = 0; $index < $rowCount; $index++) {
-                $start = $this->parseHm($starts[$index] ?? null);
-                $end = $this->parseHm($ends[$index] ?? null);
+        for ($index = 0; $index < $rowCount; $index++) {
+            $start = $this->parseHm($starts[$index] ?? null);
+            $end = $this->parseHm($ends[$index] ?? null);
 
-                if (! $start && $end) {
-                    $validator->errors()->add("break_end_at.{$index}", '休憩終了時刻だけは入力できません');
-                }
+            if (! $start && $end) {
+                $validator->errors()->add("break_end_at.{$index}", '休憩終了時刻だけは入力できません');
+            }
 
-                if ($start && $this->isOutsideWorkTime($start, $workStart, $workEnd)) {
-                    $validator->errors()->add("break_start_at.{$index}", '休憩時間が不適切な値です');
-                }
+            if ($start && $this->isOutsideWorkTime($start, $workStart, $workEnd)) {
+                $validator->errors()->add("break_start_at.{$index}", '休憩時間が不適切な値です');
+            }
 
-                if (! $end) {
+            if (! $end) {
+                continue;
+            }
+
+            if ($workStart && $end->lt($workStart)) {
+                $validator->errors()->add("break_end_at.{$index}", '休憩時間が不適切な値です');
+            }
+
+            if ($workEnd && $end->gt($workEnd)) {
+                $validator->errors()->add("break_end_at.{$index}", '休憩時間もしくは退勤時間が不適切な値です');
+            }
+        }
+
+        for ($index = 1; $index < $rowCount; $index++) {
+            $currentStart = $this->parseHm($starts[$index] ?? null);
+            $currentEnd = $this->parseHm($ends[$index] ?? null);
+
+            if (! $currentStart || ! $currentEnd) {
+                continue;
+            }
+
+            for ($previousIndex = 0; $previousIndex < $index; $previousIndex++) {
+                $previousStart = $this->parseHm($starts[$previousIndex] ?? null);
+                $previousEnd = $this->parseHm($ends[$previousIndex] ?? null);
+
+                if (! $previousStart || ! $previousEnd) {
                     continue;
                 }
 
-                if ($workStart && $end->lt($workStart)) {
-                    $validator->errors()->add("break_end_at.{$index}", '休憩時間が不適切な値です');
-                }
-
-                if ($workEnd && $end->gt($workEnd)) {
-                    $validator->errors()->add("break_end_at.{$index}", '休憩時間もしくは退勤時間が不適切な値です');
+                $overlapsPreviousBreak = $currentStart->lt($previousEnd) && $currentEnd->gt($previousStart);
+                if ($overlapsPreviousBreak) {
+                    $validator->errors()->add("break_start_at.{$index}", '休憩時間が他の休憩と重複しています');
+                    break;
                 }
             }
-
-            for ($index = 1; $index < $rowCount; $index++) {
-                $currentStart = $this->parseHm($starts[$index] ?? null);
-                $currentEnd = $this->parseHm($ends[$index] ?? null);
-
-                if (! $currentStart || ! $currentEnd) {
-                    continue;
-                }
-
-                for ($previousIndex = 0; $previousIndex < $index; $previousIndex++) {
-                    $previousStart = $this->parseHm($starts[$previousIndex] ?? null);
-                    $previousEnd = $this->parseHm($ends[$previousIndex] ?? null);
-
-                    if (! $previousStart || ! $previousEnd) {
-                        continue;
-                    }
-
-                    $overlapsPreviousBreak = $currentStart->lt($previousEnd) && $currentEnd->gt($previousStart);
-                    if ($overlapsPreviousBreak) {
-                        $validator->errors()->add("break_start_at.{$index}", '休憩時間が他の休憩と重複しています');
-                        break;
-                    }
-                }
-            }
+        }
     }
 
     private function isOutsideWorkTime(Carbon $time, ?Carbon $workStart, ?Carbon $workEnd): bool
@@ -146,7 +146,7 @@ class AttendanceCorrectionRequest extends FormRequest
         return ($workStart && $time->lt($workStart)) || ($workEnd && $time->gt($workEnd));
     }
 
-    private function parseHm(mixed $value): ?Carbon
+    private function parseHm($value): ?Carbon
     {
         if (! is_string($value) || blank($value)) {
             return null;

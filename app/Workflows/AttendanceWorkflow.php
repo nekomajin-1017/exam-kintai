@@ -44,17 +44,9 @@ class AttendanceWorkflow
     private function checkOut(int $userId, string $workDate, CarbonImmutable $now): void
     {
         $attendance = $this->attendanceForOpenShiftAction($userId, $workDate);
-        if (! $attendance || ! in_array($attendance->attendance_status_code, [
-            AttendanceStatusCode::WORKING,
-            AttendanceStatusCode::ON_BREAK,
-        ], true)) {
+        if (! $attendance || $attendance->attendance_status_code !== AttendanceStatusCode::WORKING) {
             return;
         }
-
-        AttendanceBreak::query()
-            ->where('attendance_id', $attendance->id)
-            ->whereNull('break_end_at')
-            ->update(['break_end_at' => $now]);
 
         $attendance->update([
             'check_out_at' => $now,
@@ -69,10 +61,10 @@ class AttendanceWorkflow
             return;
         }
 
-        AttendanceBreak::firstOrCreate(
-            ['attendance_id' => $attendance->id, 'break_end_at' => null],
-            ['break_start_at' => $now]
-        );
+        AttendanceBreak::create([
+            'attendance_id' => $attendance->id,
+            'break_start_at' => $now,
+        ]);
 
         $attendance->update(['attendance_status_code' => AttendanceStatusCode::ON_BREAK]);
     }
@@ -84,15 +76,12 @@ class AttendanceWorkflow
             return;
         }
 
-        $openBreak = AttendanceBreak::query()
+        AttendanceBreak::query()
             ->where('attendance_id', $attendance->id)
             ->whereNull('break_end_at')
             ->latest('break_start_at')
-            ->first();
-
-        if ($openBreak) {
-            $openBreak->update(['break_end_at' => $now]);
-        }
+            ->first()
+            ->update(['break_end_at' => $now]);
 
         $attendance->update(['attendance_status_code' => AttendanceStatusCode::WORKING]);
     }
@@ -229,7 +218,7 @@ class AttendanceWorkflow
         }
     }
 
-    private function breakRowsFromCorrections(iterable $breakCorrections): array
+    private function breakRowsFromCorrections($breakCorrections): array
     {
         $starts = [];
         $ends = [];

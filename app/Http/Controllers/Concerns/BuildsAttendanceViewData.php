@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Models\Attendance;
+use App\Models\AttendanceCorrection;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 trait BuildsAttendanceViewData
@@ -40,7 +43,7 @@ trait BuildsAttendanceViewData
         ];
     }
 
-    protected function buildDetailFromCorrection(object $correction): array
+    protected function buildDetailFromCorrection(AttendanceCorrection $correction): array
     {
 
         $correction->load('attendance.user', 'attendance.breaks', 'breakCorrections');
@@ -59,8 +62,8 @@ trait BuildsAttendanceViewData
     }
 
     protected function buildAttendanceDetailFields(
-        object $attendance,
-        mixed $breaks,
+        Attendance $attendance,
+        Collection|EloquentCollection|array $breaks,
         bool $readonly,
         bool $plainReadonly
     ): array {
@@ -86,7 +89,7 @@ trait BuildsAttendanceViewData
         ];
     }
 
-    private function resolveBreakRows(mixed $breaks): array
+    private function resolveBreakRows(Collection|EloquentCollection|array $breaks): array
     {
 
         $oldStarts = old('break_start_at');
@@ -109,7 +112,7 @@ trait BuildsAttendanceViewData
         }
 
         $rows = [];
-        $breakCollection = $breaks instanceof Collection ? $breaks : collect($breaks);
+        $breakCollection = ($breaks instanceof Collection || $breaks instanceof EloquentCollection) ? $breaks : collect($breaks);
         if ($breakCollection->count() > 0) {
             foreach ($breakCollection as $row) {
                 $rows[] = [
@@ -124,7 +127,7 @@ trait BuildsAttendanceViewData
         return $rows;
     }
 
-    private function formatHm(mixed $dateTime): string
+    private function formatHm(CarbonInterface|string|null $dateTime): string
     {
 
         if (! $dateTime) {

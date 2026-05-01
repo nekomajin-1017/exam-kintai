@@ -11,8 +11,11 @@ use App\Queries\AttendanceListQuery;
 use App\Services\DurationService;
 use App\Workflows\AttendanceWorkflow;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceScreenController extends Controller
 {
@@ -23,7 +26,7 @@ class AttendanceScreenController extends Controller
         private AttendanceListQuery $attendanceListQuery,
     ) {}
 
-    public function index()
+    public function index(): View|RedirectResponse
     {
         $user = Auth::user();
         if ($user?->is_admin) {
@@ -42,33 +45,34 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    public function checkIn(Request $request)
+    public function checkIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_in');
     }
 
-    public function checkOut(Request $request)
+    public function checkOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_out');
     }
 
-    public function breakIn(Request $request)
+    public function breakIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_in');
     }
 
-    public function breakOut(Request $request)
+    public function breakOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_out');
     }
 
-    public function userList(Request $request)
+    public function userList(Request $request): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
         $attendances = $this->attendanceListQuery->forUserMonth(
-            userId: (int) $request->user()->id,
-            month: $month,
-            includeMissingDates: true,
+            (int) $request->user()->id,
+            $month,
+            false,
+            true,
         );
         $monthNavigation = $this->buildMonthNavigation($month, 'attendance.list');
 
@@ -83,21 +87,21 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    public function userDetail(Attendance $attendance)
+    public function userDetail(Attendance $attendance): View
     {
         $this->authorize('view', $attendance);
 
         return $this->renderAttendanceDetail(
-            headerVariant: 'user',
-            attendance: $attendance,
-            formAction: route('attendance.request', $attendance),
-            submitLabel: '修正',
-            readonly: false,
-            plainReadonly: false,
+            'user',
+            $attendance,
+            route('attendance.request', $attendance),
+            '修正',
+            false,
+            false,
         );
     }
 
-    public function showUserDetailByDate(Request $request, string $date)
+    public function showUserDetailByDate(Request $request, string $date): View
     {
         try {
             $workDate = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
@@ -118,7 +122,7 @@ class AttendanceScreenController extends Controller
         return $this->userDetail($attendance);
     }
 
-    public function adminDashboard(Request $request)
+    public function adminDashboard(Request $request): View
     {
         $date = Carbon::parse($request->query('date', now()->toDateString()))->startOfDay();
         $dailyAttendances = $this->attendanceListQuery->forDay($date);
@@ -135,21 +139,21 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    public function adminDetail(Attendance $attendance)
+    public function adminDetail(Attendance $attendance): View
     {
         $this->authorize('view', $attendance);
 
         return $this->renderAttendanceDetail(
-            headerVariant: 'admin',
-            attendance: $attendance,
-            formAction: route('admin.attendance.update', $attendance),
-            submitLabel: '修正',
-            readonly: false,
-            plainReadonly: false,
+            'admin',
+            $attendance,
+            route('admin.attendance.update', $attendance),
+            '修正',
+            false,
+            false,
         );
     }
 
-    public function adminDetailByDate(User $user, string $date)
+    public function adminDetailByDate(User $user, string $date): View
     {
         try {
             $workDate = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
@@ -170,7 +174,7 @@ class AttendanceScreenController extends Controller
         return $this->adminDetail($attendance);
     }
 
-    public function adminUpdate(AttendanceCorrectionRequest $request, Attendance $attendance)
+    public function adminUpdate(AttendanceCorrectionRequest $request, Attendance $attendance): RedirectResponse
     {
         $this->authorize('update', $attendance);
         $this->attendanceWorkflow->updateAttendance($attendance, $request->validated());
@@ -178,7 +182,7 @@ class AttendanceScreenController extends Controller
         return redirect()->route('admin.attendance.detail', $attendance)->with('status', '勤怠を更新しました。');
     }
 
-    public function adminStaff()
+    public function adminStaff(): View
     {
         return view('admin_attendance_staff', [
             'headerVariant' => 'admin',
@@ -186,14 +190,14 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    public function adminStaffList(Request $request, User $user)
+    public function adminStaffList(Request $request, User $user): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
         $staffAttendances = $this->attendanceListQuery->forUserMonth(
-            userId: (int) $user->id,
-            month: $month,
-            withUser: true,
-            includeMissingDates: true,
+            (int) $user->id,
+            $month,
+            true,
+            true,
         );
         $monthNavigation = $this->buildMonthNavigation($month, 'admin.attendance.list', ['user' => $user->id]);
 
@@ -211,13 +215,14 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    public function adminStaffCsv(Request $request, User $user)
+    public function adminStaffCsv(Request $request, User $user): StreamedResponse
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
         $staffAttendances = $this->attendanceListQuery->forUserMonth(
-            userId: (int) $user->id,
-            month: $month,
-            includeMissingDates: true,
+            (int) $user->id,
+            $month,
+            false,
+            true,
         );
 
         $filename = sprintf('attendances_%s_%s.csv', preg_replace('/\s+/', '_', $user->name) ?? 'user', $month->format('Y-m'));
@@ -254,7 +259,7 @@ class AttendanceScreenController extends Controller
         bool $plainReadonly,
         bool $submitDisabled = false,
         ?string $statusMessage = null,
-    ) {
+    ): View {
         $attendance->load('user', 'breaks');
         $breaks = $attendance->breaks()->orderBy('break_start_at')->get();
         $detailFields = $this->buildAttendanceDetailFields(
@@ -277,9 +282,9 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    private function handleStampAction(Request $request, string $stampAction)
+    private function handleStampAction(Request $request, string $action): RedirectResponse
     {
-        $this->attendanceWorkflow->stamp((int) $request->user()->id, $stampAction);
+        $this->attendanceWorkflow->stamp((int) $request->user()->id, $action);
 
         return redirect()->route('attendance.index');
     }
