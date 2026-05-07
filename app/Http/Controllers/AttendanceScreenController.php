@@ -26,6 +26,7 @@ class AttendanceScreenController extends Controller
         private AttendanceListQuery $attendanceListQuery,
     ) {}
 
+    // 一般ユーザーの打刻画面を表示し、管理者アクセス時は管理画面へリダイレクト。
     public function index(): View|RedirectResponse
     {
         $user = Auth::user();
@@ -45,26 +46,31 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // 出勤打刻の処理を実行。
     public function checkIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_in');
     }
 
+    // 退勤打刻の処理を実行。
     public function checkOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_out');
     }
 
+    // 休憩入打刻の処理を実行。
     public function breakIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_in');
     }
 
+    // 休憩戻打刻の処理を実行。
     public function breakOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_out');
     }
 
+    // ユーザー本人の月次勤怠一覧を表示。
     public function userList(Request $request): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -87,6 +93,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // ユーザー本人の勤怠詳細画面を表示。
     public function userDetail(Attendance $attendance): View
     {
         $this->authorize('view', $attendance);
@@ -101,27 +108,16 @@ class AttendanceScreenController extends Controller
         );
     }
 
+    // 日付指定で本人勤怠を取得し、未作成なら作成して詳細画面を表示。
     public function showUserDetailByDate(Request $request, string $date): View
     {
-        try {
-            $workDate = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
-        } catch (\Exception $exception) {
-            abort(404);
-        }
-
-        $attendance = Attendance::query()->firstOrCreate(
-            [
-                'user_id' => $request->user()->id,
-                'work_date' => $workDate,
-            ],
-            [
-                'attendance_status_code' => AttendanceStatusCode::OFF,
-            ]
-        );
+        $workDate = $this->parseWorkDateOrAbort($date);
+        $attendance = $this->findOrCreateAttendanceForDate((int) $request->user()->id, $workDate);
 
         return $this->userDetail($attendance);
     }
 
+    // 管理者向けの日次勤怠一覧を表示。
     public function adminDashboard(Request $request): View
     {
         $date = Carbon::parse($request->query('date', now()->toDateString()))->startOfDay();
@@ -139,6 +135,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // 管理者向けの勤怠詳細画面を表示。
     public function adminDetail(Attendance $attendance): View
     {
         $this->authorize('view', $attendance);
@@ -153,35 +150,25 @@ class AttendanceScreenController extends Controller
         );
     }
 
+    // 管理者がユーザーと日付を指定して勤怠詳細を表示。
     public function adminDetailByDate(User $user, string $date): View
     {
-        try {
-            $workDate = Carbon::createFromFormat('Y-m-d', $date)->toDateString();
-        } catch (\Exception $exception) {
-            abort(404);
-        }
-
-        $attendance = Attendance::query()->firstOrCreate(
-            [
-                'user_id' => $user->id,
-                'work_date' => $workDate,
-            ],
-            [
-                'attendance_status_code' => AttendanceStatusCode::OFF,
-            ]
-        );
+        $workDate = $this->parseWorkDateOrAbort($date);
+        $attendance = $this->findOrCreateAttendanceForDate((int) $user->id, $workDate);
 
         return $this->adminDetail($attendance);
     }
 
+    // 管理者の入力で勤怠を更新し、詳細画面へ遷移。
     public function adminUpdate(AttendanceCorrectionRequest $request, Attendance $attendance): RedirectResponse
     {
         $this->authorize('update', $attendance);
         $this->attendanceWorkflow->updateAttendance($attendance, $request->validated());
 
-        return redirect()->route('admin.attendance.detail', $attendance)->with('status', '勤怠を更新しました。');
+        return redirect()->route('admin.attendance.detail', $attendance);
     }
 
+    // 管理者向けのスタッフ一覧画面を表示。
     public function adminStaff(): View
     {
         return view('admin_attendance_staff', [
@@ -190,6 +177,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // 指定スタッフの月次勤怠一覧を表示。
     public function adminStaffList(Request $request, User $user): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -215,6 +203,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // 指定スタッフの月次勤怠をCSV形式でダウンロード。
     public function adminStaffCsv(Request $request, User $user): StreamedResponse
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -250,6 +239,7 @@ class AttendanceScreenController extends Controller
         }, $filename, $headers);
     }
 
+    // 勤怠と休憩情報を詳細画面フォーム向けに整形して表示。
     private function renderAttendanceDetail(
         string $headerVariant,
         Attendance $attendance,
@@ -282,10 +272,35 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
+    // 打刻アクションをワークフローへ渡して、打刻画面へ遷移。
     private function handleStampAction(Request $request, string $action): RedirectResponse
     {
         $this->attendanceWorkflow->stamp((int) $request->user()->id, $action);
 
         return redirect()->route('attendance.index');
+    }
+
+    // URLの日付文字列を検証し、無効なら404を返す。
+    private function parseWorkDateOrAbort(string $date): string
+    {
+        try {
+            return Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+        } catch (\Exception $exception) {
+            abort(404);
+        }
+    }
+
+    // 指定ユーザー・日付の勤怠を取得し、なければ初期状態で作成する。
+    private function findOrCreateAttendanceForDate(int $userId, string $workDate): Attendance
+    {
+        return Attendance::query()->firstOrCreate(
+            [
+                'user_id' => $userId,
+                'work_date' => $workDate,
+            ],
+            [
+                'attendance_status_code' => AttendanceStatusCode::OFF,
+            ]
+        );
     }
 }

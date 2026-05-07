@@ -62,6 +62,7 @@ class AttendanceCorrectionRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
+        // 形式バリデーション通過後に、業務ルール（前後関係・重複）を追加検証する。
         $validator->after(function (Validator $validator): void {
             $this->validateWorkTimeOrder($validator);
             $this->validateBreakRows($validator);
@@ -85,6 +86,7 @@ class AttendanceCorrectionRequest extends FormRequest
 
     private function validateBreakRows(Validator $validator): void
     {
+        // 行単位チェック（勤務時間外/片側入力）→ 行間チェック（休憩重複）の順で検証する。
         $starts = is_array($this->input('break_start_at')) ? $this->input('break_start_at') : [];
         $ends = is_array($this->input('break_end_at')) ? $this->input('break_end_at') : [];
         $rowCount = max(count($starts), count($ends));

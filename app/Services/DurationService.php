@@ -7,6 +7,7 @@ use Carbon\CarbonInterface;
 
 class DurationService
 {
+    // 秒数を HH:MM 形式の文字列に変換。
     public static function formatSeconds(int $seconds): string
     {
         $hours = intdiv($seconds, 3600);
@@ -15,6 +16,7 @@ class DurationService
         return sprintf('%02d:%02d', $hours, $minutes);
     }
 
+    // 勤怠へ休憩時間と合計勤務時間の計算結果をセット。
     public function attach($attendance): void
     {
 
@@ -27,6 +29,7 @@ class DurationService
         $attendance->setAttribute('calculated_total_seconds', $totalSeconds);
     }
 
+    // 休憩行の開始・終了をもとに休憩秒数を合計して返す。
     public function breakSeconds($attendance): int
     {
 
@@ -65,6 +68,7 @@ class DurationService
         });
     }
 
+    // 出勤から退勤までの秒数から休憩秒数を引いた勤務秒数を返す。
     public function workSeconds($attendance, int $breakSeconds): int
     {
 
@@ -79,6 +83,7 @@ class DurationService
         return max(0, $checkIn->diffInSeconds($checkOut) - (int) $breakSeconds);
     }
 
+    // 日時を勤務日の日付に合わせた Carbon へ変換。
     private function toWorkDate($attendance, $dateTime): ?CarbonInterface
     {
 

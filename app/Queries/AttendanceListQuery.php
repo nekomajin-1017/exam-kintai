@@ -12,6 +12,7 @@ class AttendanceListQuery
 {
     public function __construct(private DurationService $durationService) {}
 
+    // 指定日の勤怠をユーザー順で取得し、各行へ勤務時間情報を付与して返す。
     public function forDay(CarbonInterface $date): Collection
     {
 
@@ -26,6 +27,7 @@ class AttendanceListQuery
         return $records;
     }
 
+    // 指定ユーザーの月次勤怠を取得し、必要時は欠損日を空データで補完して返す。
     public function forUserMonth(
         int $userId,
         CarbonInterface $month,

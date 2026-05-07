@@ -11,38 +11,39 @@ use Illuminate\Support\Collection;
 
 trait BuildsAttendanceViewData
 {
+    // 月送りナビゲーション用のURLと表示ラベルを組み立て。
     protected function buildMonthNavigation(CarbonInterface $month, string $routeName, array $params = []): array
     {
-
-        $current = $month->copy()->startOfMonth();
-        $previous = $current->copy()->subMonth();
-        $next = $current->copy()->addMonth();
-
-        return [
-            'previousUrl' => route($routeName, [...$params, 'month' => $previous->format('Y-m')]),
-            'nextUrl' => route($routeName, [...$params, 'month' => $next->format('Y-m')]),
-            'currentLabel' => $current->locale('ja')->isoFormat('Y年M月'),
-            'previousLabel' => $previous->locale('ja')->isoFormat('Y年M月'),
-            'nextLabel' => $next->locale('ja')->isoFormat('Y年M月'),
-        ];
+        return $this->buildNavigation(
+            $month,
+            $routeName,
+            $params,
+            'month',
+            'Y-m',
+            'Y年M月',
+            fn (CarbonInterface $date) => $date->copy()->startOfMonth(),
+            fn (CarbonInterface $date) => $date->copy()->subMonth(),
+            fn (CarbonInterface $date) => $date->copy()->addMonth(),
+        );
     }
 
+    // 日送りナビゲーション用のURLと表示ラベルを組み立て。
     protected function buildDayNavigation(CarbonInterface $day, string $routeName, array $params = []): array
     {
-
-        $current = $day->copy()->startOfDay();
-        $previous = $current->copy()->subDay();
-        $next = $current->copy()->addDay();
-
-        return [
-            'previousUrl' => route($routeName, [...$params, 'date' => $previous->toDateString()]),
-            'nextUrl' => route($routeName, [...$params, 'date' => $next->toDateString()]),
-            'currentLabel' => $current->locale('ja')->isoFormat('Y年MM月DD日'),
-            'previousLabel' => $previous->locale('ja')->isoFormat('Y年MM月DD日'),
-            'nextLabel' => $next->locale('ja')->isoFormat('Y年MM月DD日'),
-        ];
+        return $this->buildNavigation(
+            $day,
+            $routeName,
+            $params,
+            'date',
+            'Y-m-d',
+            'Y年MM月DD日',
+            fn (CarbonInterface $date) => $date->copy()->startOfDay(),
+            fn (CarbonInterface $date) => $date->copy()->subDay(),
+            fn (CarbonInterface $date) => $date->copy()->addDay(),
+        );
     }
 
+    // 修正申請の値を反映した詳細表示用データを作成。
     protected function buildDetailFromCorrection(AttendanceCorrection $correction): array
     {
 
@@ -61,6 +62,7 @@ trait BuildsAttendanceViewData
         ];
     }
 
+    // 勤怠詳細フォームで使う表示項目を作成。
     protected function buildAttendanceDetailFields(
         Attendance $attendance,
         Collection|EloquentCollection|array $breaks,
@@ -89,6 +91,7 @@ trait BuildsAttendanceViewData
         ];
     }
 
+    // 休憩入力を画面表示用の start/end 行配列に整形。
     private function resolveBreakRows(Collection|EloquentCollection|array $breaks): array
     {
 
@@ -127,6 +130,7 @@ trait BuildsAttendanceViewData
         return $rows;
     }
 
+    // 日時を H:i 形式の文字列へ変換し、空なら空文字を返す。
     private function formatHm(CarbonInterface|string|null $dateTime): string
     {
 
@@ -135,5 +139,31 @@ trait BuildsAttendanceViewData
         }
 
         return Carbon::parse($dateTime)->format('H:i');
+    }
+
+    // 前後ナビゲーションのURLと表示ラベルを共通生成。
+    private function buildNavigation(
+        CarbonInterface $base,
+        string $routeName,
+        array $params,
+        string $queryKey,
+        string $queryFormat,
+        string $labelFormat,
+        callable $normalize,
+        callable $previousResolver,
+        callable $nextResolver
+    ): array {
+
+        $current = $normalize($base);
+        $previous = $previousResolver($current);
+        $next = $nextResolver($current);
+
+        return [
+            'previousUrl' => route($routeName, [...$params, $queryKey => $previous->format($queryFormat)]),
+            'nextUrl' => route($routeName, [...$params, $queryKey => $next->format($queryFormat)]),
+            'currentLabel' => $current->locale('ja')->isoFormat($labelFormat),
+            'previousLabel' => $previous->locale('ja')->isoFormat($labelFormat),
+            'nextLabel' => $next->locale('ja')->isoFormat($labelFormat),
+        ];
     }
 }

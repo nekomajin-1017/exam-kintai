@@ -8,6 +8,7 @@ use App\Http\Requests\AttendanceCorrectionRequest;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
 use App\Workflows\AttendanceWorkflow;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
 class CorrectionRequestController extends Controller
@@ -16,6 +17,7 @@ class CorrectionRequestController extends Controller
 
     public function __construct(private AttendanceWorkflow $attendanceWorkflow) {}
 
+    // 勤怠修正申請を作成し、申請詳細画面へ遷移。
     public function store(AttendanceCorrectionRequest $request, Attendance $attendance)
     {
         $this->authorize('store', $attendance);
@@ -29,19 +31,21 @@ class CorrectionRequestController extends Controller
         return redirect()->route('stamp_correction_request.detail', $correction);
     }
 
+    // 管理者または一般ユーザー向けに申請一覧を表示。
     public function list(Request $request)
     {
-        $isAdmin = (bool) $request->user()?->is_admin;
+        $user = $request->user();
+        $isAdmin = (bool) $user?->is_admin;
         $tab = $request->query('tab', 'pending');
 
-        if (! $isAdmin && ! $request->user()?->hasVerifiedEmail()) {
+        if (! $isAdmin && ! $user?->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
         $applications = $isAdmin
             ? AttendanceCorrection::with(['attendance.user', 'requestUser'])->forTab($tab)->latest()->get()
             : AttendanceCorrection::with(['attendance.user'])
-                ->where('request_user_id', $request->user()->id)
+                ->where('request_user_id', $user->id)
                 ->forTab($tab)
                 ->latest('created_at')
                 ->get();
@@ -56,64 +60,62 @@ class CorrectionRequestController extends Controller
         ]);
     }
 
+    // 一般ユーザー向けに申請詳細画面を表示。
     public function userDetail(AttendanceCorrection $attendanceCorrection)
     {
         $this->authorize('view', $attendanceCorrection);
 
-        $detail = $this->buildDetailFromCorrection($attendanceCorrection);
-        $isApproved = $attendanceCorrection->approval_status_code === ApprovalStatusCode::APPROVED;
-        $detailFields = $this->buildAttendanceDetailFields(
-            $detail['attendance'],
-            $detail['breaks'],
-            ! $isApproved,
-            ! $isApproved,
-        );
-
-        return view('attendance_detail_screen', [
-            'headerVariant' => 'user',
-            'detailFields' => $detailFields,
-            'readonly' => ! $isApproved,
-            'plainReadonly' => ! $isApproved,
-            'formAction' => $isApproved ? route('attendance.request', $detail['attendance']) : null,
-            'formMethod' => 'PUT',
-            'submitLabel' => $isApproved ? '修正' : null,
-            'statusMessage' => $isApproved ? null : '※承認待ちのため、修正はできません。',
-        ]);
+        return $this->renderCorrectionDetail($attendanceCorrection, false);
     }
 
+    // 管理者向けに申請詳細画面を表示。
     public function adminDetail(AttendanceCorrection $attendanceCorrection)
     {
         $this->authorize('view', $attendanceCorrection);
 
+        return $this->renderCorrectionDetail($attendanceCorrection, true);
+    }
+
+    // 申請の詳細画面を権限種別ごとの表示設定で描画。
+    private function renderCorrectionDetail(AttendanceCorrection $attendanceCorrection, bool $isAdmin): View
+    {
         $isApproved = $attendanceCorrection->approval_status_code === ApprovalStatusCode::APPROVED;
+        $isReadonly = $isAdmin || ! $isApproved;
         $detail = $this->buildDetailFromCorrection($attendanceCorrection);
         $detailFields = $this->buildAttendanceDetailFields(
             $detail['attendance'],
             $detail['breaks'],
-            true,
-            true,
+            $isReadonly,
+            $isReadonly,
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => 'admin',
+            'headerVariant' => $isAdmin ? 'admin' : 'user',
             'detailFields' => $detailFields,
-            'readonly' => true,
-            'plainReadonly' => true,
-            'formAction' => route('admin.attendance.approve.update', $attendanceCorrection),
+            'readonly' => $isReadonly,
+            'plainReadonly' => $isReadonly,
+            'formAction' => $isAdmin
+                ? route('admin.attendance.approve.update', $attendanceCorrection)
+                : ($isApproved ? route('attendance.request', $detail['attendance']) : null),
             'formMethod' => 'PUT',
-            'submitLabel' => $isApproved ? '承認済み' : '承認',
-            'submitDisabled' => $isApproved,
+            'submitLabel' => $isAdmin
+                ? ($isApproved ? '承認済み' : '承認')
+                : ($isApproved ? '修正' : null),
+            'submitDisabled' => $isAdmin && $isApproved,
+            'statusMessage' => $isAdmin || $isApproved
+                ? null
+                : '※承認待ちのため、修正はできません。',
         ]);
     }
 
+    // 申請を承認し、結果メッセージ付きで詳細画面へ遷移。
     public function approve(AttendanceCorrection $attendanceCorrection)
     {
         $this->authorize('approve', $attendanceCorrection);
 
         if ($attendanceCorrection->approval_status_code === ApprovalStatusCode::APPROVED) {
             return redirect()
-                ->route('admin.attendance.approve', $attendanceCorrection)
-                ->with('status', 'この申請は既に承認済みです。');
+                ->route('admin.attendance.approve', $attendanceCorrection);
         }
 
         $this->attendanceWorkflow->approveCorrection(
@@ -122,7 +124,6 @@ class CorrectionRequestController extends Controller
         );
 
         return redirect()
-            ->route('admin.attendance.approve', $attendanceCorrection)
-            ->with('status', '申請を承認しました。');
+            ->route('admin.attendance.approve', $attendanceCorrection);
     }
 }

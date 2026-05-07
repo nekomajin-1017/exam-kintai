@@ -14,7 +14,6 @@
         'submitLabel' => $submitLabel ?? null,
         'submitDisabled' => $submitDisabled ?? false,
         'statusMessage' => $statusMessage ?? null,
-        'statusMessageClass' => $statusMessageClass ?? 'progress-message',
         'title' => $title ?? '勤怠詳細',
     ])
 @endsection

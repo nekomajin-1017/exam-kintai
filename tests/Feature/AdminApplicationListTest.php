@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Constants\ApprovalStatusCode;
+use App\Constants\AttendanceStatusCode;
 use App\Models\AttendanceCorrection;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -182,6 +183,7 @@ class AdminApplicationListTest extends TestCase
         $this->assertNotNull($correction->approved_at);
         $this->assertSame('2026-04-24 08:30:00', $attendance->check_in_at?->format('Y-m-d H:i:s'));
         $this->assertSame('2026-04-24 17:30:00', $attendance->check_out_at?->format('Y-m-d H:i:s'));
+        $this->assertSame(AttendanceStatusCode::FINISHED, $attendance->attendance_status_code);
         $this->assertSame('時刻修正', $attendance->remarks);
     }
 }

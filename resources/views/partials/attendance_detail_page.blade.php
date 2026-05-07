@@ -23,6 +23,6 @@
     @endif
 
     @if (!empty($statusMessage))
-        <p class="{{ $statusMessageClass ?? 'progress-message' }}">{{ $statusMessage }}</p>
+        <p class="progress-message">{{ $statusMessage }}</p>
     @endif
 </div>
