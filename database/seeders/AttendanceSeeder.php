@@ -6,12 +6,12 @@ use App\Constants\AttendanceStatusCode;
 use App\Models\Attendance;
 use App\Models\AttendanceBreak;
 use App\Models\User;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 
 class AttendanceSeeder extends Seeder
 {
-    private const ATTENDANCE_DAYS = 240;
+    private const ATTENDANCE_DAYS = 365;
 
     private array $holidayCache = [];
 
@@ -25,7 +25,17 @@ class AttendanceSeeder extends Seeder
                 ->count(self::ATTENDANCE_DAYS)
                 ->for($user)
                 ->state(['attendance_status_code' => AttendanceStatusCode::FINISHED])
-                ->sequence(fn ($sequence) => ['work_date' => $workDates[$sequence->index]])
+                ->sequence(function ($sequence) use ($workDates) {
+                    $workDate = CarbonImmutable::parse($workDates[$sequence->index]);
+                    $checkInAt = $workDate->setTime(9, random_int(0, 30));
+                    $checkOutAt = $workDate->setTime(18, random_int(0, 30));
+
+                    return [
+                        'work_date' => $workDate->toDateString(),
+                        'check_in_at' => $checkInAt,
+                        'check_out_at' => $checkOutAt,
+                    ];
+                })
                 ->create();
 
             foreach ($attendances as $attendance) {
@@ -37,19 +47,19 @@ class AttendanceSeeder extends Seeder
     private function recentBusinessDates(int $count): array
     {
         $dates = [];
-        $cursor = now()->startOfDay();
+        $cursor = CarbonImmutable::now()->startOfDay();
 
         while (count($dates) < $count) {
             if (! $this->isNonBusinessDay($cursor)) {
                 $dates[] = $cursor->toDateString();
             }
-            $cursor = $cursor->copy()->subDay();
+            $cursor = $cursor->subDay();
         }
 
         return array_reverse($dates);
     }
 
-    private function isNonBusinessDay(Carbon $date): bool
+    private function isNonBusinessDay(CarbonImmutable $date): bool
     {
         return $date->isWeekend() || isset($this->japaneseHolidays((int) $date->year)[$date->toDateString()]);
     }
@@ -62,12 +72,12 @@ class AttendanceSeeder extends Seeder
 
         $holidays = [];
         for ($month = 1; $month <= 12; $month++) {
-            $daysInMonth = Carbon::create($year, $month, 1)->daysInMonth;
+            $daysInMonth = CarbonImmutable::create($year, $month, 1)->daysInMonth;
             $selected = [];
 
             while (count($selected) < 2) {
                 $day = random_int(1, $daysInMonth);
-                $date = Carbon::create($year, $month, $day);
+                $date = CarbonImmutable::create($year, $month, $day);
 
                 if ($date->isWeekend() || isset($selected[$day])) {
                     continue;
@@ -90,19 +100,19 @@ class AttendanceSeeder extends Seeder
         }
 
         $breakCount = random_int(0, 2);
-        $windowStart = $attendance->check_in_at->copy()->addMinutes(60);
-        $windowEnd = $attendance->check_out_at->copy()->subMinutes(60);
+        $windowStart = $attendance->check_in_at->toImmutable()->addMinutes(60);
+        $windowEnd = $attendance->check_out_at->toImmutable()->subMinutes(60);
 
         for ($index = 0; $index < $breakCount; $index++) {
-            $latestStart = $windowEnd->copy()->subMinutes(20);
+            $latestStart = $windowEnd->subMinutes(20);
             if ($windowStart->greaterThanOrEqualTo($latestStart)) {
                 break;
             }
 
-            $breakStartAt = Carbon::instance(fake()->dateTimeBetween($windowStart, $latestStart));
-            $breakEndAt = $breakStartAt->copy()->addMinutes(random_int(15, 45));
+            $breakStartAt = CarbonImmutable::instance(fake()->dateTimeBetween($windowStart, $latestStart));
+            $breakEndAt = $breakStartAt->addMinutes(random_int(15, 45));
             if ($breakEndAt->greaterThan($windowEnd)) {
-                $breakEndAt = $windowEnd->copy();
+                $breakEndAt = $windowEnd;
             }
 
             AttendanceBreak::create([
@@ -111,7 +121,7 @@ class AttendanceSeeder extends Seeder
                 'break_end_at' => $breakEndAt,
             ]);
 
-            $windowStart = $breakEndAt->copy()->addMinutes(15);
+            $windowStart = $breakEndAt->addMinutes(15);
         }
     }
 }

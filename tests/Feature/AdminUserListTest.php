@@ -151,7 +151,7 @@ class AdminUserListTest extends TestCase
 
         $detailResponse = $this->get(route('admin.attendance.detail', $attendance));
         $detailResponse->assertOk();
-        $detailResponse->assertSeeText('2026年04月10日');
+        $detailResponse->assertSeeText('2026年4月10日');
         $detailResponse->assertSee('value="09:00"', false);
         $detailResponse->assertSee('value="18:00"', false);
     }

@@ -34,7 +34,7 @@ class UserAttendanceCorrectionTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('start_time');
-        $this->assertSame('出勤時間が不適切な値です', session('errors')->first('start_time'));
+        $this->assertSame('出勤時間もしくは退勤時間が不適切な値です', session('errors')->first('start_time'));
     }
 
     #[Test]

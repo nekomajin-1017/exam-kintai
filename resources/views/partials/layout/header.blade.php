@@ -1,5 +1,4 @@
 @php
-    $headerVariant = $headerVariant ?? 'user';
     $hideNav = request()->routeIs('login', 'register', 'admin.login');
     $showNav = auth()->check() && ! $hideNav;
 @endphp
@@ -10,7 +9,7 @@
         @if ($showNav)
             <nav>
                 <ul class="nav-list">
-                    @if ($headerVariant === 'admin')
+                    @can('admin')
                         <li class="header-nav-item">
                             <a class="nav-link" href="{{ route('admin.dashboard') }}">勤怠一覧</a>
                         </li>
@@ -30,7 +29,7 @@
                         <li class="header-nav-item">
                             <a class="nav-link" href="{{ route('stamp_correction_requests.list') }}">申請</a>
                         </li>
-                    @endif
+                    @endcan
 
                     <li class="header-nav-item">
                         <form method="POST" action="{{ route('logout') }}">

@@ -11,9 +11,7 @@
     @yield('css')
 </head>
 <body class="app-body">
-    @include('partials.layout.header', [
-        'headerVariant' => $headerVariant ?? 'user',
-    ])
+    @include('partials.layout.header')
     <main class="main">
         @yield('content')
     </main>

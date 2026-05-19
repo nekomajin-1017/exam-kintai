@@ -33,7 +33,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('山田 太郎');
-        $response->assertSeeText('2026年04月24日');
+        $response->assertSeeText('2026年4月24日');
         $response->assertSee('name="start_time"', false);
         $response->assertSee('value="09:00"', false);
         $response->assertSee('name="end_time"', false);

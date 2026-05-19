@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
 
-        Gate::define('access-admin', fn ($user) => (bool) $user->is_admin);
+        Gate::define('admin', fn ($user) => (bool) $user->is_admin);
 
         Gate::policy(Attendance::class, AttendancePolicy::class);
 

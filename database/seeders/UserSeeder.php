@@ -11,15 +11,15 @@ class UserSeeder extends Seeder
     private const COMMON_PASSWORD = 'Coachtech777';
 
     private const USER_NAMES = [
-        '田中 太郎',
-        '佐藤 花子',
-        '鈴木 一郎',
-        '高橋 美咲',
-        '伊藤 健太',
-        '渡辺 彩',
-        '山本 大輔',
-        '中村 優奈',
-        '小林 翔',
+        '山田 太郎',
+        '鈴木 花子',
+        '田中 一郎',
+        '高橋 レモン',
+        '伊藤 二郎',
+        '渡辺 ゆり',
+        '山本 次郎',
+        '中村 すみれ',
+        '小林 三郎',
         '加藤 さくら',
     ];
 

@@ -37,7 +37,7 @@ class UserAttendanceDetailTest extends TestCase
 
         $response = $this->get(route('attendance.detail', $attendance));
         $response->assertOk();
-        $response->assertSeeText('2026年04月24日');
+        $response->assertSeeText('2026年4月24日');
     }
 
     #[Test]

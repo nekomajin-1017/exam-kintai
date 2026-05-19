@@ -19,7 +19,7 @@ class DateTimeTest extends TestCase
             $response = $this->get(route('attendance.index'));
             $response->assertOk();
 
-            $expected = now()->locale('ja')->isoFormat('YYYY年MM月DD日(ddd) HH:mm');
+            $expected = now()->locale('ja')->isoFormat('YYYY年M月D日(ddd) HH:mm');
             $response->assertSeeText($expected);
         });
     }

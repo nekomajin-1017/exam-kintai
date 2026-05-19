@@ -11,7 +11,7 @@ use Carbon\CarbonImmutable;
 
 class AttendanceWorkflow
 {
-    // その時点の日時を取得し、押されたボタンに合わせて処理を呼び出す。
+    // 打刻種別に応じた勤怠更新処理の振り分け。
     public function stamp(int $userId, string $action): void
     {
         $now = CarbonImmutable::now();
@@ -26,7 +26,7 @@ class AttendanceWorkflow
         };
     }
 
-    // 今日の勤怠を用意し、まだ出勤していないときだけ出勤時刻を設定。
+    // 出勤打刻の反映。
     private function checkIn(int $userId, string $workDate, CarbonImmutable $now): void
     {
         $attendance = $this->todayAttendance($userId, $workDate)
@@ -43,7 +43,7 @@ class AttendanceWorkflow
         ]);
     }
 
-    // 勤務中のデータだけを対象にして、退勤時刻を設定。
+    // 退勤打刻の反映。
     private function checkOut(int $userId, string $workDate, CarbonImmutable $now): void
     {
         $attendance = $this->attendanceForOpenShiftAction($userId, $workDate);
@@ -57,7 +57,7 @@ class AttendanceWorkflow
         ]);
     }
 
-    // 休憩開始時刻を追加し、状態を「休憩中」に。
+    // 休憩開始打刻の反映。
     private function breakIn(int $userId, string $workDate, CarbonImmutable $now): void
     {
         $attendance = $this->attendanceForOpenShiftAction($userId, $workDate);
@@ -73,7 +73,7 @@ class AttendanceWorkflow
         $attendance->update(['attendance_status_code' => AttendanceStatusCode::ON_BREAK]);
     }
 
-    // まだ終わっていない最新の休憩に終了時刻を入れ、状態を「勤務中」へ更新。
+    // 休憩終了打刻の反映。
     private function breakOut(int $userId, string $workDate, CarbonImmutable $now): void
     {
         $attendance = $this->attendanceForOpenShiftAction($userId, $workDate);
@@ -96,18 +96,13 @@ class AttendanceWorkflow
         $attendance->update(['attendance_status_code' => AttendanceStatusCode::WORKING]);
     }
 
-    // まず今日の勤怠を探し、なければ退勤していない直近の勤怠を使用。
+    // 当日勤怠の取得。
     private function attendanceForOpenShiftAction(int $userId, string $workDate): ?Attendance
     {
-        return $this->todayAttendance($userId, $workDate)
-            ?? Attendance::query()
-                ->where('user_id', $userId)
-                ->whereNull('check_out_at')
-                ->latest('work_date')
-                ->first();
+        return $this->todayAttendance($userId, $workDate);
     }
 
-    // ユーザーIDと勤務日で探し、最初の1件を返す。
+    // 指定ユーザーの当日勤怠取得。
     private function todayAttendance(int $userId, string $workDate): ?Attendance
     {
         return Attendance::query()
@@ -116,18 +111,20 @@ class AttendanceWorkflow
             ->first();
     }
 
-    // 勤怠本体と休憩の申請データを作って保存し、作成結果を返す。
+    // 修正申請本体と休憩申請行の作成。
     public function requestCorrection(Attendance $attendance, int $requestUserId, array $payload): AttendanceCorrection
     {
         $baseDate = $this->baseDate($attendance);
         $breakRows = $this->requestBreakRows($baseDate, $payload);
         $correction = $this->createCorrection($attendance, $requestUserId, $payload, $baseDate);
-        $this->createBreakCorrections($correction, $breakRows);
+        if (! empty($breakRows)) {
+            $correction->breakCorrections()->createMany($breakRows);
+        }
 
         return $correction;
     }
 
-    // 申請内容を勤怠に反映し、状態を計算し直して承認情報を保存。
+    // 申請承認内容の勤怠本体反映、申請の承認済み更新。
     public function approveCorrection(AttendanceCorrection $correction, int $adminUserId): void
     {
         $correction->load('attendance');
@@ -146,7 +143,7 @@ class AttendanceWorkflow
         ]);
     }
 
-    // 出退勤と理由を更新し、休憩を入れ直して状態を再計算。
+    // 管理者による勤怠直接修正の反映。
     public function updateAttendance(Attendance $attendance, array $payload): void
     {
         $baseDate = $this->baseDate($attendance);
@@ -173,22 +170,22 @@ class AttendanceWorkflow
         ]);
     }
 
-    // work_date を YYYY-MM-DD 形式の文字列へ変換して返す。
+    // 勤務日の基準日文字列を返す。
     private function baseDate(Attendance $attendance): string
     {
         return CarbonImmutable::parse($attendance->work_date)->format('Y-m-d');
     }
 
-    // 休憩の入力値を整えて、日付と時刻を結合した配列に変換。
+    // 入力済み休憩行の保存用日時配列への変換。
     private function requestBreakRows(string $baseDate, array $payload): array
     {
         return $this->toDateTimeRows(
             $baseDate,
-            $this->normalizeBreakRows($payload['break_start_at'] ?? [], $payload['break_end_at'] ?? [])
+            $this->normalizeBreakRows($payload['break_start_at'] ?? [], $payload['break_end_at'] ?? []),
         );
     }
 
-    // 入力値があればそれを使い、なければ今の値を使って申請を保存。
+    // 修正申請本体の作成。
     private function createCorrection(
         Attendance $attendance,
         int $requestUserId,
@@ -209,15 +206,7 @@ class AttendanceWorkflow
         ]);
     }
 
-    // 休憩行があるときだけ、まとめて保存。
-    private function createBreakCorrections(AttendanceCorrection $correction, array $breakRows): void
-    {
-        if (! empty($breakRows)) {
-            $correction->breakCorrections()->createMany($breakRows);
-        }
-    }
-
-    // 申請で値が入っている項目だけ上書き。
+    // 申請本体の時刻・備考の勤怠本体適用。
     private function applyAttendanceCorrection(Attendance $attendance, AttendanceCorrection $correction): void
     {
         $attendance->update([
@@ -227,7 +216,7 @@ class AttendanceWorkflow
         ]);
     }
 
-    // 休憩申請があるときだけ、今の休憩を消して申請内容で作り直し。
+    // 休憩申請がある場合の休憩行置換。
     private function replaceBreaksFromCorrection(Attendance $attendance, AttendanceCorrection $correction): void
     {
         if (! $correction->breakCorrections()->exists()) {
@@ -246,7 +235,7 @@ class AttendanceWorkflow
         }
     }
 
-    // 開始と終了の日時を時刻文字列へ変換し、配列で返す。
+    // 休憩申請行の start/end 形式正規化。
     private function breakRowsFromCorrections($breakCorrections): array
     {
         $starts = [];
@@ -264,7 +253,7 @@ class AttendanceWorkflow
         return $this->normalizeBreakRows($starts, $ends);
     }
 
-    // 出勤・退勤・休憩の状況を見て状態コードを返す。
+    // 出退勤と休憩状態からの勤務ステータス解決。
     private function resolveAttendanceStatusCode(Attendance $attendance, ?array $breakRows = null): string
     {
         if (! $attendance->check_in_at) {
@@ -282,7 +271,7 @@ class AttendanceWorkflow
         return $hasOpenBreak ? AttendanceStatusCode::ON_BREAK : AttendanceStatusCode::WORKING;
     }
 
-    // 開始が空の行を捨て、終了が空なら null に。
+    // 休憩開始・終了入力の有効行のみ正規化。
     private function normalizeBreakRows(array $starts, array $ends): array
     {
         $rows = [];
@@ -303,7 +292,7 @@ class AttendanceWorkflow
         return $rows;
     }
 
-    // 基準日と start/end をつなげて保存用配列を作成。
+    // start/end の基準日付き日時配列への変換。
     private function toDateTimeRows(string $baseDate, array $rows): array
     {
         $dateTimeRows = [];

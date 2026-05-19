@@ -26,11 +26,11 @@ class AttendanceScreenController extends Controller
         private AttendanceListQuery $attendanceListQuery,
     ) {}
 
-    // 一般ユーザーの打刻画面を表示し、管理者アクセス時は管理画面へリダイレクト。
+    // 一般ユーザー打刻画面の表示、管理者は管理画面へリダイレクト。
     public function index(): View|RedirectResponse
     {
         $user = Auth::user();
-        if ($user?->is_admin) {
+        if ($user?->can('admin')) {
             return redirect()->route('admin.dashboard');
         }
 
@@ -40,37 +40,36 @@ class AttendanceScreenController extends Controller
             ->first();
 
         return view('attendance', [
-            'headerVariant' => 'user',
             'attendance' => $attendance,
             'statusCode' => $attendance?->attendance_status_code ?? AttendanceStatusCode::OFF,
         ]);
     }
 
-    // 出勤打刻の処理を実行。
+    // 出勤打刻の実行。
     public function checkIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_in');
     }
 
-    // 退勤打刻の処理を実行。
+    // 退勤打刻の実行。
     public function checkOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'check_out');
     }
 
-    // 休憩入打刻の処理を実行。
+    // 休憩開始打刻の実行。
     public function breakIn(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_in');
     }
 
-    // 休憩戻打刻の処理を実行。
+    // 休憩終了打刻の実行。
     public function breakOut(Request $request): RedirectResponse
     {
         return $this->handleStampAction($request, 'break_out');
     }
 
-    // ユーザー本人の月次勤怠一覧を表示。
+    // 一般ユーザーの月次勤怠一覧表示。
     public function userList(Request $request): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -83,7 +82,6 @@ class AttendanceScreenController extends Controller
         $monthNavigation = $this->buildMonthNavigation($month, 'attendance.list');
 
         return view('attendance_records_screen', [
-            'headerVariant' => 'user',
             'title' => '勤怠一覧',
             'attendances' => $attendances,
             ...$monthNavigation,
@@ -93,31 +91,31 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    // ユーザー本人の勤怠詳細画面を表示。
-    public function userDetail(Attendance $attendance): View
+    // 一般ユーザーの勤怠詳細表示。
+    public function detail(Request $request, Attendance $attendance): View
     {
         $this->authorize('view', $attendance);
+        $isAdmin = (bool) $request->user()?->can('admin');
 
         return $this->renderAttendanceDetail(
-            'user',
             $attendance,
-            route('attendance.request', $attendance),
+            $isAdmin ? route('admin.attendance.update', $attendance) : route('attendance.request', $attendance),
             '修正',
             false,
             false,
         );
     }
 
-    // 日付指定で本人勤怠を取得し、未作成なら作成して詳細画面を表示。
+    // 日付指定で一般ユーザーの勤怠詳細表示、未作成日は初期作成。
     public function showUserDetailByDate(Request $request, string $date): View
     {
         $workDate = $this->parseWorkDateOrAbort($date);
         $attendance = $this->findOrCreateAttendanceForDate((int) $request->user()->id, $workDate);
 
-        return $this->userDetail($attendance);
+        return $this->detail($request, $attendance);
     }
 
-    // 管理者向けの日次勤怠一覧を表示。
+    // 管理者向け日次勤怠一覧表示。
     public function adminDashboard(Request $request): View
     {
         $date = Carbon::parse($request->query('date', now()->toDateString()))->startOfDay();
@@ -125,8 +123,7 @@ class AttendanceScreenController extends Controller
         $dayNavigation = $this->buildDayNavigation($date, 'admin.dashboard');
 
         return view('attendance_records_screen', [
-            'headerVariant' => 'admin',
-            'title' => '勤怠一覧',
+            'title' => "{$dayNavigation['currentLabel']}の勤怠",
             'attendances' => $dailyAttendances,
             ...$dayNavigation,
             'firstColumnType' => 'name',
@@ -135,31 +132,17 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    // 管理者向けの勤怠詳細画面を表示。
-    public function adminDetail(Attendance $attendance): View
-    {
-        $this->authorize('view', $attendance);
-
-        return $this->renderAttendanceDetail(
-            'admin',
-            $attendance,
-            route('admin.attendance.update', $attendance),
-            '修正',
-            false,
-            false,
-        );
-    }
-
-    // 管理者がユーザーと日付を指定して勤怠詳細を表示。
-    public function adminDetailByDate(User $user, string $date): View
+    // 管理者向け勤怠詳細表示。
+    // 管理者がユーザーと日付を指定した勤怠詳細表示。
+    public function adminDetailByDate(Request $request, User $user, string $date): View
     {
         $workDate = $this->parseWorkDateOrAbort($date);
         $attendance = $this->findOrCreateAttendanceForDate((int) $user->id, $workDate);
 
-        return $this->adminDetail($attendance);
+        return $this->detail($request, $attendance);
     }
 
-    // 管理者の入力で勤怠を更新し、詳細画面へ遷移。
+    // 管理者による勤怠修正の反映。
     public function adminUpdate(AttendanceCorrectionRequest $request, Attendance $attendance): RedirectResponse
     {
         $this->authorize('update', $attendance);
@@ -168,16 +151,15 @@ class AttendanceScreenController extends Controller
         return redirect()->route('admin.attendance.detail', $attendance);
     }
 
-    // 管理者向けのスタッフ一覧画面を表示。
+    // 管理者向けスタッフ一覧表示。
     public function adminStaff(): View
     {
         return view('admin_attendance_staff', [
-            'headerVariant' => 'admin',
             'users' => User::query()->where('is_admin', false)->orderBy('name')->get(),
         ]);
     }
 
-    // 指定スタッフの月次勤怠一覧を表示。
+    // 指定スタッフの月次勤怠一覧表示。
     public function adminStaffList(Request $request, User $user): View
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -190,7 +172,6 @@ class AttendanceScreenController extends Controller
         $monthNavigation = $this->buildMonthNavigation($month, 'admin.attendance.list', ['user' => $user->id]);
 
         return view('attendance_records_screen', [
-            'headerVariant' => 'admin',
             'title' => "{$user->name}さんの勤怠一覧",
             'attendances' => $staffAttendances,
             ...$monthNavigation,
@@ -203,7 +184,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    // 指定スタッフの月次勤怠をCSV形式でダウンロード。
+    // 指定スタッフの月次勤怠CSV出力。
     public function adminStaffCsv(Request $request, User $user): StreamedResponse
     {
         $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))->startOfMonth();
@@ -239,9 +220,8 @@ class AttendanceScreenController extends Controller
         }, $filename, $headers);
     }
 
-    // 勤怠と休憩情報を詳細画面フォーム向けに整形して表示。
+    // 勤怠詳細画面に必要な表示データの組み立て。
     private function renderAttendanceDetail(
-        string $headerVariant,
         Attendance $attendance,
         ?string $formAction,
         ?string $submitLabel,
@@ -260,7 +240,6 @@ class AttendanceScreenController extends Controller
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => $headerVariant,
             'detailFields' => $detailFields,
             'readonly' => $readonly,
             'plainReadonly' => $plainReadonly,
@@ -272,7 +251,7 @@ class AttendanceScreenController extends Controller
         ]);
     }
 
-    // 打刻アクションをワークフローへ渡して、打刻画面へ遷移。
+    // 打刻アクションのWorkflow委譲。
     private function handleStampAction(Request $request, string $action): RedirectResponse
     {
         $this->attendanceWorkflow->stamp((int) $request->user()->id, $action);
@@ -284,13 +263,18 @@ class AttendanceScreenController extends Controller
     private function parseWorkDateOrAbort(string $date): string
     {
         try {
-            return Carbon::createFromFormat('Y-m-d', $date)->toDateString();
+            $parsed = Carbon::createFromFormat('Y-m-d', $date);
+            if (! $parsed || $parsed->format('Y-m-d') !== $date) {
+                abort(404);
+            }
+
+            return $parsed->toDateString();
         } catch (\Exception $exception) {
             abort(404);
         }
     }
 
-    // 指定ユーザー・日付の勤怠を取得し、なければ初期状態で作成する。
+    // 指定ユーザー・日付の勤怠取得、なければ初期状態で作成。
     private function findOrCreateAttendanceForDate(int $userId, string $workDate): Attendance
     {
         return Attendance::query()->firstOrCreate(

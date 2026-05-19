@@ -14,7 +14,5 @@
 
     @include('partials.application_list_table', [
         'applications' => $applications,
-        'isAdmin' => $isAdmin ?? false,
-        'detailRouteName' => $detailRouteName,
     ])
 @endsection

@@ -144,7 +144,7 @@ class AdminApplicationListTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('申請ユーザー');
-        $response->assertSeeText('2026年04月24日');
+        $response->assertSeeText('2026年4月24日');
         $response->assertSeeText('08:30');
         $response->assertSeeText('17:30');
         $response->assertSeeText('12:10');

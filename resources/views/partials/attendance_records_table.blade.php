@@ -24,7 +24,7 @@
                     $totalSeconds = (int) ($attendance->calculated_total_seconds ?? 0);
                     $firstCellValue = $firstColumnType === 'name'
                         ? ($attendance->user->name ?? 'ー')
-                        : \Carbon\Carbon::parse($attendance->work_date)->locale('ja')->isoFormat('Y年MM月DD日(ddd)');
+                        : \Carbon\Carbon::parse($attendance->work_date)->locale('ja')->isoFormat('Y年M月D日(ddd)');
                 @endphp
                 <tr class="list-table-row">
                     <td class="list-table-cell attendance-list-first-col">{{ $firstCellValue }}</td>

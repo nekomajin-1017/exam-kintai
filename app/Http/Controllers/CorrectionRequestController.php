@@ -35,45 +35,33 @@ class CorrectionRequestController extends Controller
     public function list(Request $request)
     {
         $user = $request->user();
-        $isAdmin = (bool) $user?->is_admin;
+        $isAdmin = (bool) $user?->can('admin');
         $tab = $request->query('tab', 'pending');
 
         if (! $isAdmin && ! $user?->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
-        $applications = $isAdmin
-            ? AttendanceCorrection::with(['attendance.user', 'requestUser'])->forTab($tab)->latest()->get()
-            : AttendanceCorrection::with(['attendance.user'])
-                ->where('request_user_id', $user->id)
-                ->forTab($tab)
-                ->latest('created_at')
-                ->get();
+        $applicationsQuery = AttendanceCorrection::with(['attendance.user', 'requestUser'])->forTab($tab);
+        if (! $isAdmin) {
+            $applicationsQuery->where('request_user_id', $user->id);
+        }
+        $applications = $applicationsQuery->latest('created_at')->get();
 
         return view('applications_screen', [
-            'headerVariant' => $isAdmin ? 'admin' : 'user',
             'tab' => $tab,
             'applications' => $applications,
-            'isAdmin' => $isAdmin,
             'tabRoute' => 'stamp_correction_requests.list',
-            'detailRouteName' => $isAdmin ? 'admin.attendance.approve' : 'stamp_correction_request.detail',
         ]);
     }
 
     // 一般ユーザー向けに申請詳細画面を表示。
-    public function userDetail(AttendanceCorrection $attendanceCorrection)
+    public function detail(Request $request, AttendanceCorrection $attendanceCorrection)
     {
         $this->authorize('view', $attendanceCorrection);
+        $isAdmin = (bool) $request->user()?->can('admin');
 
-        return $this->renderCorrectionDetail($attendanceCorrection, false);
-    }
-
-    // 管理者向けに申請詳細画面を表示。
-    public function adminDetail(AttendanceCorrection $attendanceCorrection)
-    {
-        $this->authorize('view', $attendanceCorrection);
-
-        return $this->renderCorrectionDetail($attendanceCorrection, true);
+        return $this->renderCorrectionDetail($attendanceCorrection, $isAdmin);
     }
 
     // 申請の詳細画面を権限種別ごとの表示設定で描画。
@@ -90,7 +78,6 @@ class CorrectionRequestController extends Controller
         );
 
         return view('attendance_detail_screen', [
-            'headerVariant' => $isAdmin ? 'admin' : 'user',
             'detailFields' => $detailFields,
             'readonly' => $isReadonly,
             'plainReadonly' => $isReadonly,

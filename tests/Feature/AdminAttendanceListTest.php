@@ -58,7 +58,7 @@ class AdminAttendanceListTest extends TestCase
             $this->loginAdmin();
             $response = $this->get(route('admin.dashboard'));
             $response->assertOk();
-            $response->assertSeeText('2026年04月27日');
+            $response->assertSeeText('2026年4月27日');
         });
     }
 
@@ -81,7 +81,7 @@ class AdminAttendanceListTest extends TestCase
 
             $previousResponse = $this->get(route('admin.dashboard', ['date' => '2026-04-26']));
             $previousResponse->assertOk();
-            $previousResponse->assertSeeText('2026年04月26日');
+            $previousResponse->assertSeeText('2026年4月26日');
             $previousResponse->assertSeeText('前日ユーザー');
             $previousResponse->assertSeeText('09:10');
             $previousResponse->assertSeeText('18:10');
@@ -107,7 +107,7 @@ class AdminAttendanceListTest extends TestCase
 
             $nextResponse = $this->get(route('admin.dashboard', ['date' => '2026-04-28']));
             $nextResponse->assertOk();
-            $nextResponse->assertSeeText('2026年04月28日');
+            $nextResponse->assertSeeText('2026年4月28日');
             $nextResponse->assertSeeText('翌日ユーザー');
             $nextResponse->assertSeeText('09:20');
             $nextResponse->assertSeeText('18:20');

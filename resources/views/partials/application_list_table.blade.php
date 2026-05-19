@@ -1,5 +1,5 @@
 @php
-    $isAdmin = $isAdmin ?? false;
+    $isAdmin = auth()->user()?->can('admin') ?? false;
     $emptyColspan = $isAdmin ? 6 : 5;
     $statusLabels = [
         'pending' => '承認待ち',
@@ -26,10 +26,16 @@
                 @if ($isAdmin)
                     <td class="list-table-cell">{{ $application->requestUser->name ?? 'ー' }}</td>
                 @endif
-                <td class="list-table-cell">{{ \Carbon\Carbon::parse($application->attendance->work_date)->locale('ja')->isoFormat('Y年MM月DD日') }}</td>
+                <td class="list-table-cell">{{ \Carbon\Carbon::parse($application->attendance->work_date)->locale('ja')->isoFormat('Y年M月D日') }}</td>
                 <td class="list-table-cell">{{ $application->reason ?? 'ー' }}</td>
-                <td class="list-table-cell">{{ $application->created_at?->locale('ja')->isoFormat('Y年MM月DD日') }}</td>
-                <td class="list-table-cell"><a class="detail-button" href="{{ route($detailRouteName, $application) }}">詳細</a></td>
+                <td class="list-table-cell">{{ $application->created_at?->locale('ja')->isoFormat('Y年M月D日') }}</td>
+                <td class="list-table-cell">
+                    @can('admin')
+                        <a class="detail-button" href="{{ route('admin.attendance.approve', $application) }}">詳細</a>
+                    @else
+                        <a class="detail-button" href="{{ route('stamp_correction_request.detail', $application) }}">詳細</a>
+                    @endcan
+                </td>
             </tr>
         @empty
             <tr class="list-table-row">

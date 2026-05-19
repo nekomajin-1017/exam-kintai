@@ -32,22 +32,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/detail/date/{date}', 'showUserDetailByDate')
             ->where('date', '\d{4}-\d{2}-\d{2}')
             ->name('detail.date');
-        Route::get('/detail/{attendance}', 'userDetail')->name('detail');
+        Route::get('/detail/{attendance}', 'detail')->name('detail');
     });
 
     Route::controller(CorrectionRequestController::class)->group(function () {
         Route::put('/attendance/request/{attendance}', 'store')->name('attendance.request');
-        Route::get('/stamp_correction_request/{attendanceCorrection}', 'userDetail')
+        Route::get('/stamp_correction_request/{attendanceCorrection}', 'detail')
             ->whereNumber('attendanceCorrection')
             ->name('stamp_correction_request.detail');
     });
 });
 
-Route::middleware(['auth', 'can:access-admin'])->group(function () {
+Route::middleware(['auth', 'can:admin'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(AttendanceScreenController::class)->group(function () {
             Route::get('/attendance/list', 'adminDashboard')->name('dashboard');
-            Route::get('/attendance/{attendance}', 'adminDetail')->name('attendance.detail');
+            Route::get('/attendance/{attendance}', 'detail')->name('attendance.detail');
             Route::put('/attendance/{attendance}', 'adminUpdate')->name('attendance.update');
             Route::get('/staff/list', 'adminStaff')->name('staff_list');
             Route::get('/attendance/staff/{user}/detail/date/{date}', 'adminDetailByDate')
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'can:access-admin'])->group(function () {
     });
 
     Route::controller(CorrectionRequestController::class)->group(function () {
-        Route::get('/stamp_correction_request/approve/{attendanceCorrection}', 'adminDetail')
+        Route::get('/stamp_correction_request/approve/{attendanceCorrection}', 'detail')
             ->whereNumber('attendanceCorrection')
             ->name('admin.attendance.approve');
         Route::put('/stamp_correction_request/approve/{attendanceCorrection}', 'approve')
