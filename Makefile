@@ -1,7 +1,7 @@
 SHELL := /bin/zsh
 
 SAIL := ./vendor/bin/sail
-COMPOSER_IMAGE := laravelsail/php85-composer:latest
+COMPOSER_IMAGE := laravelsail/php84-composer:latest
 
 .PHONY: setup env composer-install up key migrate seed down
 
