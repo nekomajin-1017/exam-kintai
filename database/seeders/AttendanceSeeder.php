@@ -11,9 +11,7 @@ use Illuminate\Database\Seeder;
 
 class AttendanceSeeder extends Seeder
 {
-    private const ATTENDANCE_DAYS = 365;
-
-    private array $holidayCache = [];
+    private const ATTENDANCE_DAYS = 200;
 
     public function run(): void
     {
@@ -61,15 +59,11 @@ class AttendanceSeeder extends Seeder
 
     private function isNonBusinessDay(CarbonImmutable $date): bool
     {
-        return $date->isWeekend() || isset($this->japaneseHolidays((int) $date->year)[$date->toDateString()]);
+        return $date->isWeekend() || isset($this->simulatedHolidays((int) $date->year)[$date->toDateString()]);
     }
 
-    private function japaneseHolidays(int $year): array
+    private function simulatedHolidays(int $year): array
     {
-        if (isset($this->holidayCache[$year])) {
-            return $this->holidayCache[$year];
-        }
-
         $holidays = [];
         for ($month = 1; $month <= 12; $month++) {
             $daysInMonth = CarbonImmutable::create($year, $month, 1)->daysInMonth;
@@ -88,17 +82,11 @@ class AttendanceSeeder extends Seeder
             }
         }
 
-        $this->holidayCache[$year] = $holidays;
-
         return $holidays;
     }
 
     private function createRandomBreaks(Attendance $attendance): void
     {
-        if (! $attendance->check_in_at || ! $attendance->check_out_at) {
-            return;
-        }
-
         $breakCount = random_int(0, 2);
         $windowStart = $attendance->check_in_at->toImmutable()->addMinutes(60);
         $windowEnd = $attendance->check_out_at->toImmutable()->subMinutes(60);

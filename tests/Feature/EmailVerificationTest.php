@@ -16,7 +16,7 @@ class EmailVerificationTest extends TestCase
 
     #[Test]
     // [ID:16] 会員登録後、登録メールアドレス宛に認証メールが送信される
-    public function verification_email_is_sent_after_registration(): void
+    public function sends_verification_email_after_signup(): void
     {
         Notification::fake();
 
@@ -34,7 +34,7 @@ class EmailVerificationTest extends TestCase
 
     #[Test]
     // [ID:16] 認証誘導画面の「認証はこちらから」ボタンがメール認証サイトURLを指している
-    public function verify_link_button_points_to_mail_site(): void
+    public function verify_link_points_to_mail_site(): void
     {
         $user = User::factory()->unverified()->create(['is_admin' => false]);
         /** @var User $user */
@@ -49,7 +49,7 @@ class EmailVerificationTest extends TestCase
 
     #[Test]
     // [ID:16] メール認証完了後、勤怠登録画面へ遷移する
-    public function user_is_redirected_to_attendance_screen_after_verification(): void
+    public function redirects_to_attendance_after_verification(): void
     {
         $user = User::factory()->unverified()->create(['is_admin' => false]);
         /** @var User $user */

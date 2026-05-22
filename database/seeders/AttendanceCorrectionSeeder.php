@@ -24,7 +24,7 @@ class AttendanceCorrectionSeeder extends Seeder
 
     private function createPendingCorrections(Collection $records): void
     {
-        foreach ($records->random(min(20, $records->count())) as $attendance) {
+        foreach ($records->random(20) as $attendance) {
             $correction = AttendanceCorrection::factory()->create(
                 $this->correctionAttrs($attendance, ApprovalStatusCode::PENDING)
             );
@@ -34,7 +34,7 @@ class AttendanceCorrectionSeeder extends Seeder
 
     private function createApprovedCorrections(Collection $records, Collection $admins): void
     {
-        foreach ($records->random(min(20, $records->count())) as $attendance) {
+        foreach ($records->random(20) as $attendance) {
             $correction = AttendanceCorrection::factory()->create(
                 $this->correctionAttrs($attendance, ApprovalStatusCode::APPROVED, $admins->random()->id)
             );
@@ -59,12 +59,8 @@ class AttendanceCorrectionSeeder extends Seeder
     {
         $baseDate = Carbon::parse($attendance->work_date)->format('Y-m-d');
 
-        foreach ($attendance->breaks()->orderBy('break_start_at')->get() as $break) {
+        foreach ($attendance->attendanceBreaks()->orderBy('break_start_at')->get() as $break) {
             $startTime = $break->break_start_at?->format('H:i:s');
-            if (! $startTime) {
-                continue;
-            }
-
             $startAt = Carbon::parse($baseDate.' '.$startTime)->addMinutes(random_int(-10, 10));
             $endAt = $break->break_end_at
                 ? Carbon::parse($baseDate.' '.$break->break_end_at->format('H:i:s'))->addMinutes(random_int(-10, 10))

@@ -46,18 +46,18 @@ trait BuildsAttendanceViewData
     // 修正申請の値を反映した詳細表示用データ作成。
     protected function buildDetailFromCorrection(AttendanceCorrection $correction): array
     {
-        $correction->load('attendance.user', 'attendance.breaks', 'breakCorrections');
+        $correction->load('attendance.user', 'attendance.attendanceBreaks', 'breakCorrections');
 
         $attendance = $correction->attendance;
         $attendance->check_in_at = $correction->requested_check_in_at ?? $attendance->check_in_at;
         $attendance->check_out_at = $correction->requested_check_out_at ?? $attendance->check_out_at;
         $attendance->remarks = $correction->reason ?? $attendance->remarks;
 
-        $breaks = $correction->breakCorrections->sortBy('break_start_at')->values();
+        $correctionBreakRows = $correction->breakCorrections->sortBy('break_start_at')->values();
 
         return [
             'attendance' => $attendance,
-            'breaks' => $breaks,
+            'breaks' => $correctionBreakRows,
         ];
     }
 
@@ -65,8 +65,7 @@ trait BuildsAttendanceViewData
     protected function buildAttendanceDetailFields(
         Attendance $attendance,
         Collection|EloquentCollection|array $breaks,
-        bool $readonly,
-        bool $plainReadonly
+        bool $readonly
     ): array {
         $breakRows = $this->resolveBreakRows($breaks);
         if (count($breakRows) === 0) {
@@ -84,7 +83,7 @@ trait BuildsAttendanceViewData
             'endTime' => old('end_time', $this->formatHm($attendance->check_out_at)),
             'reason' => old('reason', $attendance->remarks),
             'breakRows' => $breakRows,
-            'isPlainReadonly' => $readonly && $plainReadonly,
+            'isPlainReadonly' => $readonly,
             'readonlyAttr' => $readonly ? 'readonly' : '',
         ];
     }
@@ -99,32 +98,32 @@ trait BuildsAttendanceViewData
             $oldStarts = is_array($oldStarts) ? $oldStarts : [];
             $oldEnds = is_array($oldEnds) ? $oldEnds : [];
             $max = max(count($oldStarts), count($oldEnds));
-            $rows = [];
+            $breakInputRows = [];
 
             for ($index = 0; $index < $max; $index++) {
-                $rows[] = [
+                $breakInputRows[] = [
                     'start' => $oldStarts[$index] ?? '',
                     'end' => $oldEnds[$index] ?? '',
                 ];
             }
 
-            return $rows;
+            return $breakInputRows;
         }
 
-        $rows = [];
+        $breakInputRows = [];
         $breakCollection = ($breaks instanceof Collection || $breaks instanceof EloquentCollection) ? $breaks : collect($breaks);
         if ($breakCollection->count() > 0) {
-            foreach ($breakCollection as $row) {
-                $rows[] = [
-                    'start' => $this->formatHm($row->break_start_at),
-                    'end' => $this->formatHm($row->break_end_at),
+            foreach ($breakCollection as $breakRecord) {
+                $breakInputRows[] = [
+                    'start' => $this->formatHm($breakRecord->break_start_at),
+                    'end' => $this->formatHm($breakRecord->break_end_at),
                 ];
             }
 
-            return $rows;
+            return $breakInputRows;
         }
 
-        return $rows;
+        return $breakInputRows;
     }
 
     // 日時を H:i 形式の文字列へ変換し、空なら空文字を返す。

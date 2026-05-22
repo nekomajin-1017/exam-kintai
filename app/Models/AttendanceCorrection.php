@@ -57,12 +57,4 @@ class AttendanceCorrection extends Model
         return $query->where('approval_status_code', ApprovalStatusCode::APPROVED);
     }
 
-    public function scopeForTab($query, $tab)
-    {
-        if ($tab === 'approved') {
-            return $this->scopeApproved($query);
-        }
-
-        return $this->scopePending($query);
-    }
 }

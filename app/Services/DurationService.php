@@ -17,7 +17,7 @@ class DurationService
     }
 
     // 勤怠へ休憩時間と合計勤務時間の計算結果をセット。
-    public function attach($attendance): void
+    public function attachCalculatedDurations($attendance): void
     {
 
         $breakSeconds = $this->breakSeconds($attendance);
@@ -37,34 +37,34 @@ class DurationService
 
         $checkOut = $this->toWorkDate($attendance, $attendance->check_out_at);
 
-        return (int) $attendance->breaks->sum(function ($break) use ($attendance, $checkIn, $checkOut) {
+        return (int) $attendance->attendanceBreaks->sum(function ($attendanceBreak) use ($attendance, $checkIn, $checkOut) {
 
-            if (! $break->break_start_at) {
+            if (! $attendanceBreak->break_start_at) {
                 return 0;
             }
 
-            $start = $this->toWorkDate($attendance, $break->break_start_at);
+            $breakStartAt = $this->toWorkDate($attendance, $attendanceBreak->break_start_at);
 
-            $end = $break->break_end_at ? $this->toWorkDate($attendance, $break->break_end_at) : ($checkOut ? $checkOut->copy() : null);
+            $breakEndAt = $attendanceBreak->break_end_at ? $this->toWorkDate($attendance, $attendanceBreak->break_end_at) : ($checkOut ? $checkOut->copy() : null);
 
-            if (! $start || ! $end || $end->lte($start)) {
+            if (! $breakStartAt || ! $breakEndAt || $breakEndAt->lte($breakStartAt)) {
                 return 0;
             }
 
             if ($checkIn && $checkOut) {
 
-                $effectiveStart = $start->lt($checkIn) ? $checkIn : $start;
+                $clampedStartAt = $breakStartAt->lt($checkIn) ? $checkIn : $breakStartAt;
 
-                $effectiveEnd = $end->gt($checkOut) ? $checkOut : $end;
+                $clampedEndAt = $breakEndAt->gt($checkOut) ? $checkOut : $breakEndAt;
 
-                if ($effectiveEnd->lte($effectiveStart)) {
+                if ($clampedEndAt->lte($clampedStartAt)) {
                     return 0;
                 }
 
-                return $effectiveStart->diffInSeconds($effectiveEnd);
+                return $clampedStartAt->diffInSeconds($clampedEndAt);
             }
 
-            return $start->diffInSeconds($end);
+            return $breakStartAt->diffInSeconds($breakEndAt);
         });
     }
 

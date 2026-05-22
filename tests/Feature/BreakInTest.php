@@ -15,7 +15,7 @@ class BreakInTest extends TestCase
 
     #[Test]
     // [ID:7] 画面上に「休憩入」ボタンが表示され、処理後に画面上に表示されるステータスが「休憩中」になる
-    public function test_break_in_button_and_status(): void
+    public function break_in_sets_on_break(): void
     {
         $this->withFrozenTime('2026-04-24 12:00:00', function (): void {
             $user = $this->loginUser();
@@ -41,7 +41,7 @@ class BreakInTest extends TestCase
 
     #[Test]
     // [ID:7] 休憩は1日に何回でもでき、画面上の「休憩入」ボタンが表示される
-    public function test_break_in_button_is_displayed(): void
+    public function shows_break_in_button(): void
     {
         $this->withFrozenTime('2026-04-24 12:00:00', function (): void {
             $this->loginUser();
@@ -63,7 +63,7 @@ class BreakInTest extends TestCase
 
     #[Test]
     // [ID:7] 休憩戻ボタンが表示され、処理後にステータスが「出勤中」に変更される
-    public function test_break_out_button_and_status(): void
+    public function break_out_sets_working(): void
     {
         $this->withFrozenTime('2026-04-24 13:00:00', function (): void {
             $user = $this->loginUser();
@@ -91,7 +91,7 @@ class BreakInTest extends TestCase
 
     #[Test]
     // [ID:7] 休憩は1日に何回でもでき、画面上の「休憩戻」ボタンが表示される
-    public function test_break_out_button_is_displayed(): void
+    public function shows_break_out_button(): void
     {
         $this->withFrozenTime('2026-04-24 13:00:00', function (): void {
             $this->loginUser();
@@ -112,7 +112,7 @@ class BreakInTest extends TestCase
     #[Test]
     // [ID:7] 休憩時刻が勤怠一覧画面で正確に表示されている
 
-    public function test_break_time_is_displayed_in_attendance_list(): void
+    public function shows_break_time_in_list(): void
     {
         $this->withFrozenTime('2026-04-24 09:00:00', function (): void {
             $user = $this->loginUser();

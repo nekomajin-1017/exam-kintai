@@ -14,7 +14,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 自分の勤怠情報がすべて表示される
-    public function all_attendance_records_of_authenticated_user_are_displayed(): void
+    public function shows_user_attendances(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $otherUser = User::factory()->create(['is_admin' => false]);
@@ -46,7 +46,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 勤怠一覧画面の初期表示で現在の月が表示される
-    public function current_month_is_shown_when_opening_attendance_list(): void
+    public function shows_current_month(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $this->loginUser();
@@ -58,7 +58,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「前月」を押下すると前月の情報が表示される
-    public function previous_month_records_are_displayed_when_clicking_previous_month(): void
+    public function shows_previous_month(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -88,7 +88,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「翌月」を押下すると翌月の情報が表示される
-    public function next_month_records_are_displayed_when_clicking_next_month(): void
+    public function shows_next_month(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -118,7 +118,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「詳細」押下でその日の勤怠詳細画面に遷移できる
-    public function detail_button_navigates_to_attendance_detail_for_the_day(): void
+    public function opens_day_detail(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         /** @var User $user */

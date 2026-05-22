@@ -96,19 +96,18 @@ sail test
 
 ## 使用技術（実行環境）
 
-2026-04-28 時点（`composer.json` / `compose.yaml` ベース）:
-
-- PHP: `^8.3`
-- Laravel: `^13.0`
-- Laravel Fortify: `^1.36`
-- MySQL: `8.4`（Docker）
-- phpMyAdmin: `5.2`（Docker）
+- PHP: `8.5`
+- Laravel: `13系`
+- MySQL: `8.4`
+- phpMyAdmin: `5.2`
+- Laravel Fortify
+- Mailtrap
 
 ## 主要 URL
 
 - アプリ入口: `http://localhost`
   - `/` は `/attendance` にリダイレクト
-  - 未ログイン時は `auth` ミドルウェアによりログイン画面へ遷移
+  - 未ログイン時は一般ログイン画面へ遷移
 - 一般ログイン: `http://localhost/login`
 - 会員登録: `http://localhost/register`
 - 管理者ログイン: `http://localhost/admin/login`

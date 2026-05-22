@@ -112,11 +112,11 @@ class AttendanceWorkflow
     }
 
     // 修正申請本体と休憩申請行の作成。
-    public function requestCorrection(Attendance $attendance, int $requestUserId, array $payload): AttendanceCorrection
+    public function requestCorrection(Attendance $attendance, int $requestUserId, array $correctionInput): AttendanceCorrection
     {
         $baseDate = $this->baseDate($attendance);
-        $breakRows = $this->requestBreakRows($baseDate, $payload);
-        $correction = $this->createCorrection($attendance, $requestUserId, $payload, $baseDate);
+        $breakRows = $this->requestBreakRows($baseDate, $correctionInput);
+        $correction = $this->createCorrection($attendance, $requestUserId, $correctionInput, $baseDate);
         if (! empty($breakRows)) {
             $correction->breakCorrections()->createMany($breakRows);
         }
@@ -144,25 +144,25 @@ class AttendanceWorkflow
     }
 
     // 管理者による勤怠直接修正の反映。
-    public function updateAttendance(Attendance $attendance, array $payload): void
+    public function updateAttendance(Attendance $attendance, array $correctionInput): void
     {
         $baseDate = $this->baseDate($attendance);
 
         $attendance->update([
-            'check_in_at' => ! empty($payload['start_time'])
-                ? CarbonImmutable::parse($baseDate.' '.$payload['start_time'])
+            'check_in_at' => ! empty($correctionInput['start_time'])
+                ? CarbonImmutable::parse($baseDate.' '.$correctionInput['start_time'])
                 : null,
-            'check_out_at' => ! empty($payload['end_time'])
-                ? CarbonImmutable::parse($baseDate.' '.$payload['end_time'])
+            'check_out_at' => ! empty($correctionInput['end_time'])
+                ? CarbonImmutable::parse($baseDate.' '.$correctionInput['end_time'])
                 : null,
-            'remarks' => $payload['reason'] ?? null,
+            'remarks' => $correctionInput['reason'] ?? null,
         ]);
 
-        $breakRows = $this->requestBreakRows($baseDate, $payload);
+        $breakRows = $this->requestBreakRows($baseDate, $correctionInput);
 
-        $attendance->breaks()->delete();
+        $attendance->attendanceBreaks()->delete();
         if (! empty($breakRows)) {
-            $attendance->breaks()->createMany($breakRows);
+            $attendance->attendanceBreaks()->createMany($breakRows);
         }
 
         $attendance->update([
@@ -177,11 +177,11 @@ class AttendanceWorkflow
     }
 
     // 入力済み休憩行の保存用日時配列への変換。
-    private function requestBreakRows(string $baseDate, array $payload): array
+    private function requestBreakRows(string $baseDate, array $correctionInput): array
     {
         return $this->toDateTimeRows(
             $baseDate,
-            $this->normalizeBreakRows($payload['break_start_at'] ?? [], $payload['break_end_at'] ?? []),
+            $this->normalizeBreakRows($correctionInput['break_start_at'] ?? [], $correctionInput['break_end_at'] ?? []),
         );
     }
 
@@ -189,19 +189,19 @@ class AttendanceWorkflow
     private function createCorrection(
         Attendance $attendance,
         int $requestUserId,
-        array $payload,
+        array $correctionInput,
         string $baseDate
     ): AttendanceCorrection {
         return AttendanceCorrection::create([
             'attendance_id' => $attendance->id,
             'request_user_id' => $requestUserId,
-            'requested_check_in_at' => isset($payload['start_time'])
-                ? CarbonImmutable::parse($baseDate.' '.$payload['start_time'])
+            'requested_check_in_at' => isset($correctionInput['start_time'])
+                ? CarbonImmutable::parse($baseDate.' '.$correctionInput['start_time'])
                 : $attendance->check_in_at,
-            'requested_check_out_at' => isset($payload['end_time'])
-                ? CarbonImmutable::parse($baseDate.' '.$payload['end_time'])
+            'requested_check_out_at' => isset($correctionInput['end_time'])
+                ? CarbonImmutable::parse($baseDate.' '.$correctionInput['end_time'])
                 : $attendance->check_out_at,
-            'reason' => $payload['reason'] ?? null,
+            'reason' => $correctionInput['reason'] ?? null,
             'approval_status_code' => ApprovalStatusCode::PENDING,
         ]);
     }
@@ -228,32 +228,32 @@ class AttendanceWorkflow
             $this->breakRowsFromCorrections($correction->breakCorrections()->orderBy('break_start_at')->get())
         );
 
-        $attendance->breaks()->delete();
+        $attendance->attendanceBreaks()->delete();
 
         if (! empty($breakRows)) {
-            $attendance->breaks()->createMany($breakRows);
+            $attendance->attendanceBreaks()->createMany($breakRows);
         }
     }
 
-    // 休憩申請行の start/end 形式正規化。
+    // 休憩申請行の start/end 形式を統一。
     private function breakRowsFromCorrections($breakCorrections): array
     {
-        $starts = [];
-        $ends = [];
+        $breakStartTimes = [];
+        $breakEndTimes = [];
 
-        foreach ($breakCorrections as $breakRow) {
-            $starts[] = $breakRow->break_start_at
-                ? CarbonImmutable::parse($breakRow->break_start_at)->format('H:i:s')
+        foreach ($breakCorrections as $breakCorrectionRow) {
+            $breakStartTimes[] = $breakCorrectionRow->break_start_at
+                ? CarbonImmutable::parse($breakCorrectionRow->break_start_at)->format('H:i:s')
                 : null;
-            $ends[] = $breakRow->break_end_at
-                ? CarbonImmutable::parse($breakRow->break_end_at)->format('H:i:s')
+            $breakEndTimes[] = $breakCorrectionRow->break_end_at
+                ? CarbonImmutable::parse($breakCorrectionRow->break_end_at)->format('H:i:s')
                 : null;
         }
 
-        return $this->normalizeBreakRows($starts, $ends);
+        return $this->normalizeBreakRows($breakStartTimes, $breakEndTimes);
     }
 
-    // 出退勤と休憩状態からの勤務ステータス解決。
+    // 出退勤と休憩状態から勤務ステータスを判定。
     private function resolveAttendanceStatusCode(Attendance $attendance, ?array $breakRows = null): string
     {
         if (! $attendance->check_in_at) {
@@ -266,46 +266,46 @@ class AttendanceWorkflow
 
         $hasOpenBreak = $breakRows !== null
             ? collect($breakRows)->contains(fn (array $row) => empty($row['break_end_at']))
-            : $attendance->breaks()->whereNull('break_end_at')->exists();
+            : $attendance->attendanceBreaks()->whereNull('break_end_at')->exists();
 
         return $hasOpenBreak ? AttendanceStatusCode::ON_BREAK : AttendanceStatusCode::WORKING;
     }
 
-    // 休憩開始・終了入力の有効行のみ正規化。
-    private function normalizeBreakRows(array $starts, array $ends): array
+    // 休憩開始・終了入力の有効行のみ形式を統一。
+    private function normalizeBreakRows(array $breakStartTimes, array $breakEndTimes): array
     {
-        $rows = [];
+        $normalizedBreakRows = [];
 
-        for ($rowIndex = 0, $rowCount = max(count($starts), count($ends)); $rowIndex < $rowCount; $rowIndex++) {
-            $startAt = $starts[$rowIndex] ?? null;
-            if (blank($startAt)) {
+        for ($rowIndex = 0, $rowCount = max(count($breakStartTimes), count($breakEndTimes)); $rowIndex < $rowCount; $rowIndex++) {
+            $breakStartAt = $breakStartTimes[$rowIndex] ?? null;
+            if (blank($breakStartAt)) {
                 continue;
             }
 
-            $endAt = $ends[$rowIndex] ?? null;
-            $rows[] = [
-                'start' => $startAt,
-                'end' => blank($endAt) ? null : $endAt,
+            $breakEndAt = $breakEndTimes[$rowIndex] ?? null;
+            $normalizedBreakRows[] = [
+                'start' => $breakStartAt,
+                'end' => blank($breakEndAt) ? null : $breakEndAt,
             ];
         }
 
-        return $rows;
+        return $normalizedBreakRows;
     }
 
     // start/end の基準日付き日時配列への変換。
-    private function toDateTimeRows(string $baseDate, array $rows): array
+    private function toDateTimeRows(string $baseDate, array $breakRows): array
     {
-        $dateTimeRows = [];
+        $breakDateTimeRows = [];
 
-        foreach ($rows as $row) {
-            $dateTimeRows[] = [
-                'break_start_at' => CarbonImmutable::parse($baseDate.' '.$row['start'])->toDateTimeString(),
-                'break_end_at' => ! blank($row['end'])
-                    ? CarbonImmutable::parse($baseDate.' '.$row['end'])->toDateTimeString()
+        foreach ($breakRows as $breakRow) {
+            $breakDateTimeRows[] = [
+                'break_start_at' => CarbonImmutable::parse($baseDate.' '.$breakRow['start'])->toDateTimeString(),
+                'break_end_at' => ! blank($breakRow['end'])
+                    ? CarbonImmutable::parse($baseDate.' '.$breakRow['end'])->toDateTimeString()
                     : null,
             ];
         }
 
-        return $dateTimeRows;
+        return $breakDateTimeRows;
     }
 }

@@ -7,8 +7,6 @@
 @section('content')
     @include('partials.attendance_detail_page', [
         'detailFields' => $detailFields ?? [],
-        'readonly' => $readonly ?? false,
-        'plainReadonly' => $plainReadonly ?? false,
         'formAction' => $formAction ?? null,
         'formMethod' => $formMethod ?? 'PUT',
         'submitLabel' => $submitLabel ?? null,

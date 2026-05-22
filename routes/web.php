@@ -15,8 +15,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-
     Route::get('/stamp_correction_request/list', [CorrectionRequestController::class, 'list'])
         ->name('stamp_correction_requests.list');
 });

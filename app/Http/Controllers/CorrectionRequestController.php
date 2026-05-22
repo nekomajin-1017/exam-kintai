@@ -36,13 +36,21 @@ class CorrectionRequestController extends Controller
     {
         $user = $request->user();
         $isAdmin = (bool) $user?->can('admin');
-        $tab = $request->query('tab', 'pending');
+        $validated = $request->validate([
+            'tab' => ['nullable', 'in:pending,approved'],
+        ]);
+        $tab = $validated['tab'] ?? 'pending';
 
         if (! $isAdmin && ! $user?->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
-        $applicationsQuery = AttendanceCorrection::with(['attendance.user', 'requestUser'])->forTab($tab);
+        $applicationsQuery = AttendanceCorrection::with(['attendance.user', 'requestUser']);
+        if ($tab === 'approved') {
+            $applicationsQuery->approved();
+        } else {
+            $applicationsQuery->pending();
+        }
         if (! $isAdmin) {
             $applicationsQuery->where('request_user_id', $user->id);
         }
@@ -69,21 +77,18 @@ class CorrectionRequestController extends Controller
     {
         $isApproved = $attendanceCorrection->approval_status_code === ApprovalStatusCode::APPROVED;
         $isReadonly = $isAdmin || ! $isApproved;
-        $detail = $this->buildDetailFromCorrection($attendanceCorrection);
+        $correctionDetailContext = $this->buildDetailFromCorrection($attendanceCorrection);
         $detailFields = $this->buildAttendanceDetailFields(
-            $detail['attendance'],
-            $detail['breaks'],
-            $isReadonly,
+            $correctionDetailContext['attendance'],
+            $correctionDetailContext['breaks'],
             $isReadonly,
         );
 
         return view('attendance_detail_screen', [
             'detailFields' => $detailFields,
-            'readonly' => $isReadonly,
-            'plainReadonly' => $isReadonly,
             'formAction' => $isAdmin
                 ? route('admin.attendance.approve.update', $attendanceCorrection)
-                : ($isApproved ? route('attendance.request', $detail['attendance']) : null),
+                : ($isApproved ? route('attendance.request', $correctionDetailContext['attendance']) : null),
             'formMethod' => 'PUT',
             'submitLabel' => $isAdmin
                 ? ($isApproved ? '承認済み' : '承認')

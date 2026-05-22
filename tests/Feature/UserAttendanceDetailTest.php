@@ -14,7 +14,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 勤怠詳細画面の「名前」がログインユーザーの氏名になっている
-    public function name_field_shows_logged_in_users_name(): void
+    public function shows_logged_in_user_name(): void
     {
         $user = User::factory()->create(['is_admin' => false, 'name' => '山田 太郎']);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -28,7 +28,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 勤怠詳細画面の「日付」が選択した日付になっている
-    public function date_field_shows_selected_date(): void
+    public function shows_selected_date(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -42,7 +42,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 出勤・退勤に表示される時間がログインユーザーの打刻と一致している
-    public function start_and_end_times_match_users_attendance(): void
+    public function shows_start_end_times(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -57,7 +57,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 休憩に表示される時間がログインユーザーの打刻と一致している
-    public function break_times_match_users_attendance(): void
+    public function shows_break_times(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -76,7 +76,7 @@ class UserAttendanceDetailTest extends TestCase
             'attendance_status_code' => 'finished',
         ]);
 
-        $attendance->breaks()->create([
+        $attendance->attendanceBreaks()->create([
             'break_start_at' => "{$workDate} 12:00:00",
             'break_end_at' => "{$workDate} 13:00:00",
         ]);

@@ -14,7 +14,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 勤怠詳細画面に表示されるデータが選択した勤怠情報と一致する
-    public function selected_attendance_data_is_displayed_on_admin_detail_screen(): void
+    public function shows_selected_attendance_on_admin_detail(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false, 'name' => '山田 太郎']);
@@ -22,7 +22,7 @@ class AdminAttendanceCorrectionTest extends TestCase
             'attendance_status_code' => AttendanceStatusCode::FINISHED,
             'remarks' => '通常勤務',
         ]);
-        $attendance->breaks()->create([
+        $attendance->attendanceBreaks()->create([
             'break_start_at' => '2026-04-24 12:00:00',
             'break_end_at' => '2026-04-24 13:00:00',
         ]);
@@ -47,7 +47,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 出勤時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function validation_error_is_shown_when_start_time_is_after_end_time_for_admin_update(): void
+    public function start_after_end_shows_error_for_admin_update(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -72,7 +72,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 休憩開始時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function validation_error_is_shown_when_break_start_is_after_end_time_for_admin_update(): void
+    public function break_start_after_end_shows_error_for_admin_update(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -97,7 +97,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 休憩終了時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function validation_error_is_shown_when_break_end_is_after_end_time_for_admin_update(): void
+    public function break_end_after_end_shows_error_for_admin_update(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -122,7 +122,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 備考欄が未入力の場合にエラーメッセージが表示される
-    public function validation_error_is_shown_when_reason_is_empty_for_admin_update(): void
+    public function reason_required_shows_error_for_admin_update(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);

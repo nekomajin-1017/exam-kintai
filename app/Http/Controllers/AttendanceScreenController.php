@@ -77,7 +77,6 @@ class AttendanceScreenController extends Controller
             (int) $request->user()->id,
             $month,
             false,
-            true,
         );
         $monthNavigation = $this->buildMonthNavigation($month, 'attendance.list');
 
@@ -101,7 +100,6 @@ class AttendanceScreenController extends Controller
             $attendance,
             $isAdmin ? route('admin.attendance.update', $attendance) : route('attendance.request', $attendance),
             '修正',
-            false,
             false,
         );
     }
@@ -167,7 +165,6 @@ class AttendanceScreenController extends Controller
             (int) $user->id,
             $month,
             true,
-            true,
         );
         $monthNavigation = $this->buildMonthNavigation($month, 'admin.attendance.list', ['user' => $user->id]);
 
@@ -192,7 +189,6 @@ class AttendanceScreenController extends Controller
             (int) $user->id,
             $month,
             false,
-            true,
         );
 
         $filename = sprintf('attendances_%s_%s.csv', preg_replace('/\s+/', '_', $user->name) ?? 'user', $month->format('Y-m'));
@@ -225,24 +221,20 @@ class AttendanceScreenController extends Controller
         Attendance $attendance,
         ?string $formAction,
         ?string $submitLabel,
-        bool $readonly,
-        bool $plainReadonly,
+        bool $readonly = false,
         bool $submitDisabled = false,
         ?string $statusMessage = null,
     ): View {
-        $attendance->load('user', 'breaks');
-        $breaks = $attendance->breaks()->orderBy('break_start_at')->get();
+        $attendance->load('user', 'attendanceBreaks');
+        $attendanceBreaks = $attendance->attendanceBreaks()->orderBy('break_start_at')->get();
         $detailFields = $this->buildAttendanceDetailFields(
             $attendance,
-            $breaks,
-            $readonly,
-            $plainReadonly
+            $attendanceBreaks,
+            $readonly
         );
 
         return view('attendance_detail_screen', [
             'detailFields' => $detailFields,
-            'readonly' => $readonly,
-            'plainReadonly' => $plainReadonly,
             'formAction' => $formAction,
             'formMethod' => 'PUT',
             'submitLabel' => $submitLabel,
@@ -262,16 +254,12 @@ class AttendanceScreenController extends Controller
     // URLの日付文字列を検証し、無効なら404を返す。
     private function parseWorkDateOrAbort(string $date): string
     {
-        try {
-            $parsed = Carbon::createFromFormat('Y-m-d', $date);
-            if (! $parsed || $parsed->format('Y-m-d') !== $date) {
-                abort(404);
-            }
-
-            return $parsed->toDateString();
-        } catch (\Exception $exception) {
+        $parsedWorkDate = Carbon::createFromFormat('Y-m-d', $date);
+        if (! $parsedWorkDate || $parsedWorkDate->format('Y-m-d') !== $date) {
             abort(404);
         }
+
+        return $parsedWorkDate->toDateString();
     }
 
     // 指定ユーザー・日付の勤怠取得、なければ初期状態で作成。

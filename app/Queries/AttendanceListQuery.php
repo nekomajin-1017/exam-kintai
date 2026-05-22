@@ -16,70 +16,63 @@ class AttendanceListQuery
     public function forDay(CarbonInterface $date): Collection
     {
 
-        $records = Attendance::query()
-            ->with('user', 'breaks')
+        $dailyAttendances = Attendance::query()
+            ->with('user', 'attendanceBreaks')
             ->whereDate('work_date', $date->toDateString())
             ->orderBy('user_id')
             ->get();
 
-        $records->each(fn ($attendance) => $this->durationService->attach($attendance));
+        $dailyAttendances->each(fn ($attendance) => $this->durationService->attachCalculatedDurations($attendance));
 
-        return $records;
+        return $dailyAttendances;
     }
 
-    // 指定ユーザーの月次勤怠を取得し、必要時は欠損日を空データで補完して返す。
+    // 指定ユーザーの月次勤怠を取得し、欠損日を空データで補完して返す。
     public function forUserMonth(
         int $userId,
         CarbonInterface $month,
-        bool $withUser = false,
-        bool $includeMissingDates = false
+        bool $loadUser = false
     ): Collection {
 
-        $start = Carbon::parse($month)->startOfMonth();
+        $monthStartDate = Carbon::parse($month)->startOfMonth();
 
-        $end = Carbon::parse($month)->endOfMonth();
+        $monthEndDate = Carbon::parse($month)->endOfMonth();
 
-        $relations = $withUser ? ['user', 'breaks'] : ['breaks'];
+        $relations = $loadUser ? ['user', 'attendanceBreaks'] : ['attendanceBreaks'];
 
-        $records = Attendance::query()
+        $attendances = Attendance::query()
             ->with($relations)
             ->where('user_id', $userId)
-            ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+            ->whereBetween('work_date', [$monthStartDate->toDateString(), $monthEndDate->toDateString()])
             ->orderBy('work_date')
             ->get();
 
-        if (! $includeMissingDates) {
-            $records->each(fn ($attendance) => $this->durationService->attach($attendance));
-
-            return $records;
-        }
-
-        $indexed = $records->keyBy(
+        $attendancesByDate = $attendances->keyBy(
             fn ($attendance) => Carbon::parse($attendance->work_date)->toDateString()
         );
 
-        $filled = collect();
+        $monthlyAttendances = collect();
 
-        $cursor = $start->copy();
+        $currentDate = $monthStartDate->copy();
 
-        while ($cursor->lte($end)) {
+        while ($currentDate->lte($monthEndDate)) {
 
-            $dateKey = $cursor->toDateString();
+            $workDate = $currentDate->toDateString();
 
-            $attendance = $indexed->get($dateKey);
+            $attendance = $attendancesByDate->get($workDate);
 
             if (! $attendance) {
-                $attendance = new Attendance(['user_id' => $userId, 'work_date' => $dateKey]);
-                $attendance->setRelation('breaks', collect());
+                $attendance = new Attendance(['user_id' => $userId, 'work_date' => $workDate]);
+                $attendance->setRelation('attendanceBreaks', collect());
             }
 
-            $this->durationService->attach($attendance);
+            $this->durationService->attachCalculatedDurations($attendance);
 
-            $filled->push($attendance);
+            $monthlyAttendances->push($attendance);
 
-            $cursor->addDay();
+            $currentDate->addDay();
         }
 
-        return $filled;
+        return $monthlyAttendances;
     }
 }

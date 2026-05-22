@@ -14,7 +14,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 管理者が全一般ユーザーの氏名・メールアドレスを確認できる
-    public function admin_can_view_all_general_users_name_and_email(): void
+    public function shows_all_general_users(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $userA = User::factory()->create(['is_admin' => false, 'name' => '一般A', 'email' => 'a@example.com']);
@@ -36,7 +36,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 選択したユーザーの勤怠情報が正しく表示される
-    public function selected_users_attendance_is_displayed_correctly(): void
+    public function shows_selected_user_attendance(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -69,7 +69,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「前月」を押下した時に表示月の前月情報が表示される
-    public function previous_month_information_is_displayed_when_clicking_previous_month(): void
+    public function shows_previous_month_for_admin(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -101,7 +101,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「翌月」を押下した時に表示月の翌月情報が表示される
-    public function next_month_information_is_displayed_when_clicking_next_month(): void
+    public function shows_next_month_for_admin(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -133,7 +133,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「詳細」を押下するとその日の勤怠詳細画面に遷移する
-    public function detail_button_navigates_to_attendance_detail_screen(): void
+    public function opens_admin_attendance_detail(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $targetUser = User::factory()->create(['is_admin' => false, 'name' => '対象ユーザー']);

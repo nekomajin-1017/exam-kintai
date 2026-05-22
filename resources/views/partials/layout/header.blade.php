@@ -40,6 +40,5 @@
                 </ul>
             </nav>
         @endif
-        @yield('header')
     </div>
 </header>
