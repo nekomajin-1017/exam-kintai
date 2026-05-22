@@ -22,39 +22,38 @@
 ### 1. 前提
 
 - Docker Desktop
-- Composer
-- Sail エイリアス
 - Mailtrap アカウント（メール認証確認用）
-
-Sail エイリアスを未設定の場合:
-
-```bash
-echo "alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'" >> ~/.zshrc
-exec $SHELL
-```
 
 ### 2. 初期起動（推奨）
 
 ```bash
 git clone https://github.com/nekomajin-1017/exam-kintai.git
 cd exam-kintai
-cp .env.example .env
-composer install
-sail up -d --build
-sail artisan key:generate
-sail artisan migrate:fresh --seed
+make setup
 ```
 
 通常起動:
 
 ```bash
-sail up -d
+make up
 ```
 
 停止:
 
 ```bash
-sail down
+make down
+```
+
+DB再作成 + Seed:
+
+```bash
+make migrate
+```
+
+Seedのみ再投入:
+
+```bash
+make seed
 ```
 
 ### 3. メール設定（認証メール送信用）
@@ -75,13 +74,13 @@ MAIL_FROM_NAME="${APP_NAME}"
 設定反映:
 
 ```bash
-sail artisan config:clear
+./vendor/bin/sail artisan config:clear
 ```
 
 ## テスト実行
 
 ```bash
-sail test
+./vendor/bin/sail test
 ```
 
 ## 設計資料
@@ -117,7 +116,7 @@ sail test
 
 ## デモユーザー
 
-`sail artisan migrate:fresh --seed` 実行後に利用可能:
+`make migrate` 実行後に利用可能:
 
 - 一般ユーザー: `user1@example.com` 〜 `user10@example.com`
 - 管理者: `admin1@example.com`, `admin2@example.com`
