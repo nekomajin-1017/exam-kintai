@@ -24,7 +24,7 @@
 - Docker Desktop
 - Mailtrap アカウント（メール認証確認用）
 
-### 2. 初期起動（推奨）
+### 2. 初期起動時
 
 ```bash
 git clone https://github.com/nekomajin-1017/exam-kintai.git
@@ -32,25 +32,25 @@ cd exam-kintai
 make setup
 ```
 
-通常起動:
+※ 通常起動時:
 
 ```bash
 make up
 ```
 
-停止:
+※ 停止時:
 
 ```bash
 make down
 ```
 
-DB再作成 + Seed:
+※ DB再作成 + Seed:
 
 ```bash
 make migrate
 ```
 
-Seedのみ再投入:
+※ Seedのみ再投入:
 
 ```bash
 make seed
@@ -71,7 +71,7 @@ MAIL_FROM_ADDRESS="noreply@example.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-設定反映:
+※ 設定反映:
 
 ```bash
 ./vendor/bin/sail artisan config:clear

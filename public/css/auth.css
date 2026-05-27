@@ -43,6 +43,11 @@
     color: white;
 }
 
+.button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+}
+
 .link-center {
     text-align: center;
 }
