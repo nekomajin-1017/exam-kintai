@@ -12,7 +12,7 @@
         <td class="table-data">
             <div class="time-range">
                 @if ($fields['isPlainReadonly'])
-                    <span class="time-static-value">{{ $fields['startTime'] ?: 'ー' }}</span>
+                    <span class="time-static-value">{{ $fields['startTime'] ?: '' }}</span>
                 @else
                     <div class="time-input-col">
                         <input class="time-input" type="text" name="start_time"
@@ -24,7 +24,7 @@
                 @endif
                 <span>〜</span>
                 @if ($fields['isPlainReadonly'])
-                    <span class="time-static-value">{{ $fields['endTime'] ?: 'ー' }}</span>
+                    <span class="time-static-value">{{ $fields['endTime'] ?: '' }}</span>
                 @else
                     <div class="time-input-col">
                         <input class="time-input" type="text" name="end_time"
@@ -43,7 +43,7 @@
             <td class="table-data">
                 <div class="time-range">
                     @if ($fields['isPlainReadonly'])
-                        <span class="time-static-value">{{ $row['start'] ?: 'ー' }}</span>
+                        <span class="time-static-value">{{ $row['start'] ?: '' }}</span>
                     @else
                         <div class="time-input-col">
                             <input class="time-input" type="text" name="break_start_at[]" value="{{ $row['start'] }}" {{ $fields['readonlyAttr'] }}>
@@ -54,7 +54,7 @@
                     @endif
                     <span>〜</span>
                     @if ($fields['isPlainReadonly'])
-                        <span class="time-static-value">{{ $row['end'] ?: 'ー' }}</span>
+                        <span class="time-static-value">{{ $row['end'] ?: '' }}</span>
                     @else
                         <div class="time-input-col">
                             <input class="time-input" type="text" name="break_end_at[]" value="{{ $row['end'] }}" {{ $fields['readonlyAttr'] }}>
@@ -71,7 +71,7 @@
         <th class="table-header">備考</th>
         <td class="table-data">
             @if ($fields['isPlainReadonly'])
-                <div class="reason-static">{{ $fields['reason'] ?: 'ー' }}</div>
+                <div class="reason-static">{{ $fields['reason'] ?: '' }}</div>
             @else
                 <div class="reason-input-col">
                     <textarea class="reason-input" name="reason" maxlength="255" {{ $fields['readonlyAttr'] }}>{{ $fields['reason'] }}</textarea>

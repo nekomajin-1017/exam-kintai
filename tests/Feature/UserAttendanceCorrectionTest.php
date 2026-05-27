@@ -15,7 +15,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 出勤時間が退勤時間より後の場合に「出勤時間が不適切な値です」が表示される
-    public function start_after_end_shows_error(): void
+    public function startAfterEndShowsError(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendance($user, '2026-04-24', [
@@ -39,7 +39,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 休憩開始時間が退勤時間より後の場合にバリデーションメッセージが表示される
-    public function break_start_after_end_shows_error(): void
+    public function breakStartAfterEndShowsError(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendance($user, '2026-04-24', [
@@ -63,7 +63,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 休憩終了時間が退勤時間より後の場合にバリデーションメッセージが表示される
-    public function break_end_after_end_shows_error(): void
+    public function breakEndAfterEndShowsError(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendance($user, '2026-04-24', [
@@ -87,7 +87,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 備考未入力時にバリデーションメッセージが表示される
-    public function reason_required_shows_error(): void
+    public function reasonRequiredShowsError(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendance($user, '2026-04-24', [
@@ -111,7 +111,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 修正申請が作成され、管理者の承認画面と申請一覧に表示される
-    public function creates_request_visible_to_admin(): void
+    public function createsRequestVisibleToAdmin(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $admin = User::factory()->create(['is_admin' => true]);
@@ -145,7 +145,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 承認待ちタブにログインユーザーの申請がすべて表示される
-    public function shows_user_requests_in_pending_tab(): void
+    public function showsUserRequestsInPendingTab(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance1 = $this->createAttendance($user, '2026-04-10', [
@@ -181,7 +181,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 承認済みタブに管理者承認済み申請が表示される
-    public function shows_approved_requests_in_tab(): void
+    public function showsApprovedRequestsInTab(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $admin = User::factory()->create(['is_admin' => true]);
@@ -214,7 +214,7 @@ class UserAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:11] 申請一覧の詳細ボタンから勤怠詳細画面へ遷移できる
-    public function opens_correction_detail_from_list(): void
+    public function opensCorrectionDetailFromList(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendance($user, '2026-04-24', [

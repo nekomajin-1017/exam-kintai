@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\AttendanceScreenController;
-use App\Http\Controllers\CorrectionRequestController;
+use App\Http\Controllers\AdminAttendanceController;
+use App\Http\Controllers\UserAttendanceController;
+use App\Http\Controllers\AttendanceCorrectionController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
@@ -15,27 +16,27 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/stamp_correction_request/list', [CorrectionRequestController::class, 'list'])
+    Route::get('/stamp_correction_request/list', [AttendanceCorrectionController::class, 'listCorrectionRequests'])
         ->name('stamp_correction_requests.list');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::prefix('attendance')->name('attendance.')->controller(AttendanceScreenController::class)->group(function () {
+    Route::prefix('attendance')->name('attendance.')->controller(UserAttendanceController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/check_in', 'checkIn')->name('check_in');
         Route::post('/check_out', 'checkOut')->name('check_out');
         Route::post('/break_in', 'breakIn')->name('break_in');
         Route::post('/break_out', 'breakOut')->name('break_out');
-        Route::get('/list', 'userList')->name('list');
-        Route::get('/detail/date/{date}', 'showUserDetailByDate')
+        Route::get('/list', 'listUserAttendances')->name('list');
+        Route::get('/detail/date/{date}', 'showUserAttendanceDetailByDate')
             ->where('date', '\d{4}-\d{2}-\d{2}')
             ->name('detail.date');
-        Route::get('/detail/{attendance}', 'detail')->name('detail');
+        Route::get('/detail/{attendance}', 'showUserAttendanceDetail')->name('detail');
     });
 
-    Route::controller(CorrectionRequestController::class)->group(function () {
+    Route::controller(AttendanceCorrectionController::class)->group(function () {
         Route::put('/attendance/request/{attendance}', 'store')->name('attendance.request');
-        Route::get('/stamp_correction_request/{attendanceCorrection}', 'detail')
+        Route::get('/stamp_correction_request/{attendanceCorrection}', 'showCorrectionRequestDetail')
             ->whereNumber('attendanceCorrection')
             ->name('stamp_correction_request.detail');
     });
@@ -43,21 +44,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'can:admin'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
-        Route::controller(AttendanceScreenController::class)->group(function () {
+        Route::controller(AdminAttendanceController::class)->group(function () {
             Route::get('/attendance/list', 'adminDashboard')->name('dashboard');
-            Route::get('/attendance/{attendance}', 'detail')->name('attendance.detail');
+            Route::get('/attendance/{attendance}', 'showAdminAttendanceDetail')->name('attendance.detail');
             Route::put('/attendance/{attendance}', 'adminUpdate')->name('attendance.update');
             Route::get('/staff/list', 'adminStaff')->name('staff_list');
-            Route::get('/attendance/staff/{user}/detail/date/{date}', 'adminDetailByDate')
+            Route::get('/attendance/staff/{user}/detail/date/{date}', 'showAdminAttendanceDetailByDate')
                 ->where('date', '\d{4}-\d{2}-\d{2}')
                 ->name('attendance.detail.date');
-            Route::get('/attendance/staff/{user}', 'adminStaffList')->name('attendance.list');
+            Route::get('/attendance/staff/{user}', 'adminStaffAttendanceList')->name('attendance.list');
             Route::get('/attendance/staff/{user}/csv', 'adminStaffCsv')->name('attendance.list.csv');
         });
     });
 
-    Route::controller(CorrectionRequestController::class)->group(function () {
-        Route::get('/stamp_correction_request/approve/{attendanceCorrection}', 'detail')
+    Route::controller(AttendanceCorrectionController::class)->group(function () {
+        Route::get('/stamp_correction_request/approve/{attendanceCorrection}', 'showCorrectionRequestDetail')
             ->whereNumber('attendanceCorrection')
             ->name('admin.attendance.approve');
         Route::put('/stamp_correction_request/approve/{attendanceCorrection}', 'approve')

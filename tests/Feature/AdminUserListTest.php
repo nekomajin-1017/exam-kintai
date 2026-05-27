@@ -14,7 +14,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 管理者が全一般ユーザーの氏名・メールアドレスを確認できる
-    public function shows_all_general_users(): void
+    public function showsAllGeneralUsers(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $userA = User::factory()->create(['is_admin' => false, 'name' => '一般A', 'email' => 'a@example.com']);
@@ -36,7 +36,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 選択したユーザーの勤怠情報が正しく表示される
-    public function shows_selected_user_attendance(): void
+    public function showsSelectedUserAttendance(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -69,7 +69,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「前月」を押下した時に表示月の前月情報が表示される
-    public function shows_previous_month_for_admin(): void
+    public function showsPreviousMonthForAdmin(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -101,7 +101,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「翌月」を押下した時に表示月の翌月情報が表示される
-    public function shows_next_month_for_admin(): void
+    public function showsNextMonthForAdmin(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $admin = User::factory()->create(['is_admin' => true]);
@@ -133,7 +133,7 @@ class AdminUserListTest extends TestCase
 
     #[Test]
     // [ID:14] 「詳細」を押下するとその日の勤怠詳細画面に遷移する
-    public function opens_admin_attendance_detail(): void
+    public function opensAdminAttendanceDetail(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $targetUser = User::factory()->create(['is_admin' => false, 'name' => '対象ユーザー']);

@@ -7,22 +7,22 @@ use App\Http\Controllers\Concerns\BuildsAttendanceViewData;
 use App\Http\Requests\AttendanceCorrectionRequest;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
-use App\Workflows\AttendanceWorkflow;
+use App\Services\AttendanceCorrectionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class CorrectionRequestController extends Controller
+class AttendanceCorrectionController extends Controller
 {
     use BuildsAttendanceViewData;
 
-    public function __construct(private AttendanceWorkflow $attendanceWorkflow) {}
+    public function __construct(private AttendanceCorrectionService $attendanceCorrectionService) {}
 
     // 勤怠修正申請を作成し、申請詳細画面へ遷移。
     public function store(AttendanceCorrectionRequest $request, Attendance $attendance)
     {
         $this->authorize('store', $attendance);
 
-        $correction = $this->attendanceWorkflow->requestCorrection(
+        $correction = $this->attendanceCorrectionService->requestCorrection(
             $attendance,
             (int) $request->user()->id,
             $request->validated(),
@@ -32,7 +32,7 @@ class CorrectionRequestController extends Controller
     }
 
     // 管理者または一般ユーザー向けに申請一覧を表示。
-    public function list(Request $request)
+    public function listCorrectionRequests(Request $request)
     {
         $user = $request->user();
         $isAdmin = (bool) $user?->can('admin');
@@ -45,26 +45,26 @@ class CorrectionRequestController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        $applicationsQuery = AttendanceCorrection::with(['attendance.user', 'requestUser']);
+        $correctionRequestsQuery = AttendanceCorrection::with(['attendance.user', 'requestUser']);
         if ($tab === 'approved') {
-            $applicationsQuery->approved();
+            $correctionRequestsQuery->approved();
         } else {
-            $applicationsQuery->pending();
+            $correctionRequestsQuery->pending();
         }
         if (! $isAdmin) {
-            $applicationsQuery->where('request_user_id', $user->id);
+            $correctionRequestsQuery->where('request_user_id', $user->id);
         }
-        $applications = $applicationsQuery->latest('created_at')->get();
+        $correctionRequests = $correctionRequestsQuery->latest('created_at')->get();
 
         return view('applications_screen', [
             'tab' => $tab,
-            'applications' => $applications,
+            'correctionRequests' => $correctionRequests,
             'tabRoute' => 'stamp_correction_requests.list',
         ]);
     }
 
     // 一般ユーザー向けに申請詳細画面を表示。
-    public function detail(Request $request, AttendanceCorrection $attendanceCorrection)
+    public function showCorrectionRequestDetail(Request $request, AttendanceCorrection $attendanceCorrection)
     {
         $this->authorize('view', $attendanceCorrection);
         $isAdmin = (bool) $request->user()?->can('admin');
@@ -110,7 +110,7 @@ class CorrectionRequestController extends Controller
                 ->route('admin.attendance.approve', $attendanceCorrection);
         }
 
-        $this->attendanceWorkflow->approveCorrection(
+        $this->attendanceCorrectionService->approveCorrection(
             $attendanceCorrection,
             (int) auth()->id(),
         );

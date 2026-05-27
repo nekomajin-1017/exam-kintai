@@ -87,11 +87,11 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ### テーブル設計
 
-![テーブル設計](tables.png)
+![テーブル設計](tables1.png)
 
 ### 画面/設計図
 
-![画面/設計図](attendance.png)
+![画面/設計図](attendance1.png)
 
 ## 使用技術（実行環境）
 

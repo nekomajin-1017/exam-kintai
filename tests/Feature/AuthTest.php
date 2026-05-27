@@ -12,7 +12,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:1] 登録画面において名前が未入力の場合、「お名前を入力してください」というバリデーションメッセージが表示される
-    public function name_is_required(): void
+    public function nameIsRequired(): void
     {
         $response = $this->post('/register', [
             'name' => '',
@@ -27,7 +27,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:1] 登録画面においてメールアドレスが未入力の場合、「メールアドレスを入力してください」というバリデーションメッセージが表示される
-    public function email_is_required(): void
+    public function emailIsRequired(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -42,7 +42,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:1] 登録画面においてパスワードが8文字未満の場合、「パスワードは8文字以上で入力してください」というバリデーションメッセージが表示される
-    public function password_must_be_at_least_8_characters(): void
+    public function passwordMustBeAtLeast8Characters(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -57,7 +57,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:1] 登録画面においてパスワードとパスワード確認が一致しない場合、「パスワードが一致しません」というバリデーションメッセージが表示される
-    public function password_confirmation_must_match(): void
+    public function passwordConfirmationMustMatch(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -67,12 +67,12 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('password');
-        $this->assertEquals('パスワードが一致しません', session('errors')->first('password'));
+        $this->assertEquals('パスワードと一致しません', session('errors')->first('password'));
     }
 
     #[Test]
     // [ID:1] 登録画面においてパスワードが未入力の場合、「パスワードを入力してください」というバリデーションメッセージが表示される
-    public function password_is_required(): void
+    public function passwordIsRequired(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -87,7 +87,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:1] 登録画面においてフォームに内容が入力されていた場合、データベースに登録したユーザー情報が保存される
-    public function registers_user_in_database(): void
+    public function registersUserInDatabase(): void
     {
         $response = $this->post('/register', [
             'name' => 'Test User',
@@ -105,7 +105,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:2] 一般ユーザーのログイン画面においてメールアドレスが未入力の場合、「メールアドレスを入力してください」というバリデーションメッセージが表示される
-    public function login_requires_email(): void
+    public function loginRequiresEmail(): void
     {
         $response = $this->post('/login', [
             'email' => '',
@@ -118,7 +118,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:2] 一般ユーザーのログイン画面においてパスワードが未入力の場合、「パスワードを入力してください」というバリデーションメッセージが表示される
-    public function login_requires_password(): void
+    public function loginRequiresPassword(): void
     {
         $response = $this->post('/login', [
             'email' => 'test@example.com',
@@ -131,7 +131,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:2] 一般ユーザーのログイン画面において入力内容が登録内容と一致しない場合、「ログイン情報が登録されていません」というバリデーションメッセージが表示される
-    public function login_rejects_invalid_credentials(): void
+    public function loginRejectsInvalidCredentials(): void
     {
         $response = $this->post('/login', [
             'email' => 'nonexistent@example.com',
@@ -144,7 +144,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:3] 管理者のログイン画面においてメールアドレスが未入力の場合、「メールアドレスを入力してください」というバリデーションメッセージが表示される
-    public function admin_login_requires_email(): void
+    public function adminLoginRequiresEmail(): void
     {
         $response = $this->post('/admin/login', [
             'email' => '',
@@ -157,7 +157,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:3] 管理者のログイン画面においてパスワードが未入力の場合、「パスワードを入力してください」というバリデーションメッセージが表示される
-    public function admin_login_requires_password(): void
+    public function adminLoginRequiresPassword(): void
     {
         $response = $this->post('/admin/login', [
             'email' => 'admin@example.com',
@@ -170,7 +170,7 @@ class AuthTest extends TestCase
 
     #[Test]
     // [ID:3] 管理者のログイン画面において入力内容が登録内容と一致しない場合、「ログイン情報が登録されていません」というバリデーションメッセージが表示される
-    public function admin_login_rejects_invalid_credentials(): void
+    public function adminLoginRejectsInvalidCredentials(): void
     {
         $response = $this->post('/admin/login', [
             'email' => 'nonexistent@example.com',

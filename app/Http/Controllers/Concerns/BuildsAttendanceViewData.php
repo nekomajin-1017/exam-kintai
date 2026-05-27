@@ -67,7 +67,7 @@ trait BuildsAttendanceViewData
         Collection|EloquentCollection|array $breaks,
         bool $readonly
     ): array {
-        $breakRows = $this->resolveBreakRows($breaks);
+        $breakRows = $this->buildBreakRowsForView($breaks);
         if (count($breakRows) === 0) {
             $breakRows[] = ['start' => '', 'end' => ''];
         }
@@ -89,7 +89,7 @@ trait BuildsAttendanceViewData
     }
 
     // 休憩入力を画面表示用の start/end 行配列に整形。
-    private function resolveBreakRows(Collection|EloquentCollection|array $breaks): array
+    private function buildBreakRowsForView(Collection|EloquentCollection|array $breaks): array
     {
         $oldStarts = old('break_start_at');
         $oldEnds = old('break_end_at');

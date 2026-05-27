@@ -13,6 +13,6 @@
     ])
 
     @include('partials.application_list_table', [
-        'applications' => $applications,
+        'correctionRequests' => $correctionRequests,
     ])
 @endsection

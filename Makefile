@@ -16,7 +16,7 @@ composer-install:
 		-v "$$(pwd):/var/www/html" \
 		-w /var/www/html \
 		$(COMPOSER_IMAGE) \
-		composer install --ignore-platform-reqs
+		composer install
 
 up:
 	$(SAIL) up -d --build

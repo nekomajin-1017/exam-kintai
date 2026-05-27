@@ -14,7 +14,7 @@ class CheckOutTest extends TestCase
 
     #[Test]
     // [ID:8] 画面上に「退勤」ボタンが表示され、処理後に画面上に表示されるステータスが「退勤済」になる
-    public function check_out_sets_finished(): void
+    public function checkOutSetsFinished(): void
     {
         $this->withFrozenTime('2026-04-24 18:00:00', function (): void {
             $user = $this->loginUser();
@@ -45,7 +45,7 @@ class CheckOutTest extends TestCase
 
     #[Test]
     // [ID:8] 勤怠一覧画面に退勤時刻が正確に記録されている
-    public function shows_check_out_time_in_list(): void
+    public function showsCheckOutTimeInList(): void
     {
         $this->withFrozenTime('2026-04-24 09:00:00', function (): void {
             $user = $this->loginUser();

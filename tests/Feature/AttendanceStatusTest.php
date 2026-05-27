@@ -14,7 +14,7 @@ class AttendanceStatusTest extends TestCase
 
     #[Test]
     // [ID:5] 勤務外の場合、画面上に表示されているステータスが「勤務外」と表示されている
-    public function status_is_off(): void
+    public function statusIsOff(): void
     {
         $this->withFrozenTime('2026-04-27 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -31,7 +31,7 @@ class AttendanceStatusTest extends TestCase
 
     #[Test]
     // [ID:5] 出勤中の場合、画面上に表示されているステータスが「出勤中」と表示されている
-    public function status_is_working(): void
+    public function statusIsWorking(): void
     {
         $this->withFrozenTime('2026-04-27 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -48,7 +48,7 @@ class AttendanceStatusTest extends TestCase
 
     #[Test]
     // [ID:5] 休憩中の場合、画面上に表示されているステータスが「休憩中」と表示されている
-    public function status_is_on_break(): void
+    public function statusIsOnBreak(): void
     {
         $this->withFrozenTime('2026-04-27 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -65,7 +65,7 @@ class AttendanceStatusTest extends TestCase
 
     #[Test]
     // [ID:5] 退勤済みの場合、画面上に表示されているステータスが「退勤済」と表示されている
-    public function status_is_finished(): void
+    public function statusIsFinished(): void
     {
         $this->withFrozenTime('2026-04-27 09:30:00', function (): void {
             $user = $this->loginUser();

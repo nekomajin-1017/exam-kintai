@@ -16,7 +16,7 @@
     />
 
     @include('partials.attendance_records_table', [
-        'attendances' => $attendances,
+        'attendanceRecords' => $attendanceRecords,
         'firstColumnType' => $firstColumnType ?? 'date',
         'detailRouteName' => $detailRouteName,
         'allowMissingDetail' => $allowMissingDetail ?? false,

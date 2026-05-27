@@ -14,7 +14,7 @@ class AdminAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:12] その日になされた全ユーザーの勤怠情報が正確に確認できる
-    public function shows_daily_attendance_for_all_users(): void
+    public function showsDailyAttendanceForAllUsers(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $this->loginAdmin();
@@ -52,7 +52,7 @@ class AdminAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:12] 遷移した際に現在の日付が表示される
-    public function shows_current_date_on_admin_list(): void
+    public function showsCurrentDateOnAdminList(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $this->loginAdmin();
@@ -64,7 +64,7 @@ class AdminAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:12] 「前日」を押下した時に前日の日付の勤怠情報が表示される
-    public function shows_previous_day_on_admin_list(): void
+    public function showsPreviousDayOnAdminList(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $this->loginAdmin();
@@ -90,7 +90,7 @@ class AdminAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:12] 「翌日」を押下した時に翌日の日付の勤怠情報が表示される
-    public function shows_next_day_on_admin_list(): void
+    public function showsNextDayOnAdminList(): void
     {
         $this->withFrozenTime('2026-04-27 10:00:00', function (): void {
             $this->loginAdmin();

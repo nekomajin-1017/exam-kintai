@@ -14,7 +14,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 自分の勤怠情報がすべて表示される
-    public function shows_user_attendances(): void
+    public function showsUserAttendances(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $otherUser = User::factory()->create(['is_admin' => false]);
@@ -46,7 +46,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 勤怠一覧画面の初期表示で現在の月が表示される
-    public function shows_current_month(): void
+    public function showsCurrentMonth(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $this->loginUser();
@@ -58,7 +58,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「前月」を押下すると前月の情報が表示される
-    public function shows_previous_month(): void
+    public function showsPreviousMonth(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -88,7 +88,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「翌月」を押下すると翌月の情報が表示される
-    public function shows_next_month(): void
+    public function showsNextMonth(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -118,7 +118,7 @@ class UserAttendanceListTest extends TestCase
 
     #[Test]
     // [ID:9] 「詳細」押下でその日の勤怠詳細画面に遷移できる
-    public function opens_day_detail(): void
+    public function opensDayDetail(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         /** @var User $user */

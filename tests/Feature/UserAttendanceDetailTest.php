@@ -14,7 +14,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 勤怠詳細画面の「名前」がログインユーザーの氏名になっている
-    public function shows_logged_in_user_name(): void
+    public function showsLoggedInUserName(): void
     {
         $user = User::factory()->create(['is_admin' => false, 'name' => '山田 太郎']);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -28,7 +28,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 勤怠詳細画面の「日付」が選択した日付になっている
-    public function shows_selected_date(): void
+    public function showsSelectedDate(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -42,7 +42,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 出勤・退勤に表示される時間がログインユーザーの打刻と一致している
-    public function shows_start_end_times(): void
+    public function showsStartEndTimes(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');
@@ -57,7 +57,7 @@ class UserAttendanceDetailTest extends TestCase
 
     #[Test]
     // [ID:10] 休憩に表示される時間がログインユーザーの打刻と一致している
-    public function shows_break_times(): void
+    public function showsBreakTimes(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
         $attendance = $this->createAttendanceWithBreak($user, '2026-04-24');

@@ -70,8 +70,8 @@ class AttendanceCorrectionRequest extends FormRequest
 
     private function validateWorkTimeOrder(Validator $validator): void
     {
-        $start = $this->parseHm($this->input('start_time'));
-        $end = $this->parseHm($this->input('end_time'));
+        $start = $this->createHmCarbon($this->input('start_time'));
+        $end = $this->createHmCarbon($this->input('end_time'));
 
         if ($start && $end && $start->gt($end)) {
             $validator->errors()->add(
@@ -86,12 +86,12 @@ class AttendanceCorrectionRequest extends FormRequest
         $starts = is_array($this->input('break_start_at')) ? $this->input('break_start_at') : [];
         $ends = is_array($this->input('break_end_at')) ? $this->input('break_end_at') : [];
         $rowCount = max(count($starts), count($ends));
-        $workStart = $this->parseHm($this->input('start_time'));
-        $workEnd = $this->parseHm($this->input('end_time'));
+        $workStart = $this->createHmCarbon($this->input('start_time'));
+        $workEnd = $this->createHmCarbon($this->input('end_time'));
 
         for ($index = 0; $index < $rowCount; $index++) {
-            $start = $this->parseHm($starts[$index] ?? null);
-            $end = $this->parseHm($ends[$index] ?? null);
+            $start = $this->createHmCarbon($starts[$index] ?? null);
+            $end = $this->createHmCarbon($ends[$index] ?? null);
 
             if (! $start && $end) {
                 $validator->errors()->add("break_end_at.{$index}", '休憩終了時刻だけは入力できません');
@@ -119,16 +119,16 @@ class AttendanceCorrectionRequest extends FormRequest
         }
 
         for ($index = 1; $index < $rowCount; $index++) {
-            $currentStart = $this->parseHm($starts[$index] ?? null);
-            $currentEnd = $this->parseHm($ends[$index] ?? null);
+            $currentStart = $this->createHmCarbon($starts[$index] ?? null);
+            $currentEnd = $this->createHmCarbon($ends[$index] ?? null);
 
             if (! $currentStart || ! $currentEnd) {
                 continue;
             }
 
             for ($previousIndex = 0; $previousIndex < $index; $previousIndex++) {
-                $previousStart = $this->parseHm($starts[$previousIndex] ?? null);
-                $previousEnd = $this->parseHm($ends[$previousIndex] ?? null);
+                $previousStart = $this->createHmCarbon($starts[$previousIndex] ?? null);
+                $previousEnd = $this->createHmCarbon($ends[$previousIndex] ?? null);
 
                 if (! $previousStart || ! $previousEnd) {
                     continue;
@@ -148,7 +148,7 @@ class AttendanceCorrectionRequest extends FormRequest
         return ($workStart && $time->lt($workStart)) || ($workEnd && $time->gt($workEnd));
     }
 
-    private function parseHm($value): ?Carbon
+    private function createHmCarbon($value): ?Carbon
     {
         if (! is_string($value) || blank($value)) {
             return null;

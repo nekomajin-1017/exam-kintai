@@ -33,9 +33,9 @@ class DurationService
     public function breakSeconds($attendance): int
     {
 
-        $checkIn = $this->toWorkDate($attendance, $attendance->check_in_at);
+        $checkIn = $this->combineWorkDateAndTime($attendance, $attendance->check_in_at);
 
-        $checkOut = $this->toWorkDate($attendance, $attendance->check_out_at);
+        $checkOut = $this->combineWorkDateAndTime($attendance, $attendance->check_out_at);
 
         return (int) $attendance->attendanceBreaks->sum(function ($attendanceBreak) use ($attendance, $checkIn, $checkOut) {
 
@@ -43,9 +43,9 @@ class DurationService
                 return 0;
             }
 
-            $breakStartAt = $this->toWorkDate($attendance, $attendanceBreak->break_start_at);
+            $breakStartAt = $this->combineWorkDateAndTime($attendance, $attendanceBreak->break_start_at);
 
-            $breakEndAt = $attendanceBreak->break_end_at ? $this->toWorkDate($attendance, $attendanceBreak->break_end_at) : ($checkOut ? $checkOut->copy() : null);
+            $breakEndAt = $attendanceBreak->break_end_at ? $this->combineWorkDateAndTime($attendance, $attendanceBreak->break_end_at) : ($checkOut ? $checkOut->copy() : null);
 
             if (! $breakStartAt || ! $breakEndAt || $breakEndAt->lte($breakStartAt)) {
                 return 0;
@@ -72,9 +72,9 @@ class DurationService
     public function workSeconds($attendance, int $breakSeconds): int
     {
 
-        $checkIn = $this->toWorkDate($attendance, $attendance->check_in_at);
+        $checkIn = $this->combineWorkDateAndTime($attendance, $attendance->check_in_at);
 
-        $checkOut = $this->toWorkDate($attendance, $attendance->check_out_at);
+        $checkOut = $this->combineWorkDateAndTime($attendance, $attendance->check_out_at);
 
         if (! $checkIn || ! $checkOut || $checkOut->lte($checkIn)) {
             return 0;
@@ -84,7 +84,7 @@ class DurationService
     }
 
     // 日時を勤務日の日付に合わせた Carbon へ変換。
-    private function toWorkDate($attendance, $dateTime): ?CarbonInterface
+    private function combineWorkDateAndTime($attendance, $dateTime): ?CarbonInterface
     {
 
         if (! $dateTime) {

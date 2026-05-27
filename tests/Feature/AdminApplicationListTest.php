@@ -16,7 +16,7 @@ class AdminApplicationListTest extends TestCase
 
     #[Test]
     // [ID:15] 承認待ちの修正申請が全て表示されている
-    public function shows_pending_requests_for_admin(): void
+    public function showsPendingRequestsForAdmin(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $userA = User::factory()->create(['is_admin' => false, 'name' => '申請者A']);
@@ -66,7 +66,7 @@ class AdminApplicationListTest extends TestCase
 
     #[Test]
     // [ID:15] 承認済みの修正申請が全て表示されている
-    public function shows_approved_requests_for_admin(): void
+    public function showsApprovedRequestsForAdmin(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $userA = User::factory()->create(['is_admin' => false, 'name' => '申請者A']);
@@ -118,7 +118,7 @@ class AdminApplicationListTest extends TestCase
 
     #[Test]
     // [ID:15] 修正申請の詳細内容が正しく表示されている
-    public function shows_request_detail_for_admin(): void
+    public function showsRequestDetailForAdmin(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false, 'name' => '申請ユーザー']);
@@ -155,7 +155,7 @@ class AdminApplicationListTest extends TestCase
 
     #[Test]
     // [ID:15] 修正申請の承認処理が正しく行われる
-    public function approves_request_and_updates_attendance(): void
+    public function approvesRequestAndUpdatesAttendance(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);

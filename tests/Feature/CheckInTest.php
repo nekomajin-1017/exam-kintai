@@ -13,7 +13,7 @@ class CheckInTest extends TestCase
 
     #[Test]
     // [ID:6] 画面上に「出勤」ボタンが表示され、処理後に画面上に表示されるステータスが「出勤中」になる
-    public function check_in_sets_working(): void
+    public function checkInSetsWorking(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -37,7 +37,7 @@ class CheckInTest extends TestCase
 
     #[Test]
     // [ID:6] 出勤は1日に1回のみで、退勤済みステータスでは「出勤」ボタンが表示されない
-    public function hides_check_in_after_finished(): void
+    public function hidesCheckInAfterFinished(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $user = $this->loginUser();
@@ -66,7 +66,7 @@ class CheckInTest extends TestCase
 
     #[Test]
     // [ID:6] 出勤時刻が勤怠一覧画面で正確に表示される
-    public function shows_check_in_time_in_list(): void
+    public function showsCheckInTimeInList(): void
     {
         $this->withFrozenTime('2026-04-24 09:30:00', function (): void {
             $this->loginUser();

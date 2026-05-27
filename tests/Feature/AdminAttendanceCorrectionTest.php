@@ -14,7 +14,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 勤怠詳細画面に表示されるデータが選択した勤怠情報と一致する
-    public function shows_selected_attendance_on_admin_detail(): void
+    public function showsSelectedAttendanceOnAdminDetail(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false, 'name' => '山田 太郎']);
@@ -47,7 +47,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 出勤時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function start_after_end_shows_error_for_admin_update(): void
+    public function startAfterEndShowsErrorForAdminUpdate(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -72,7 +72,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 休憩開始時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function break_start_after_end_shows_error_for_admin_update(): void
+    public function breakStartAfterEndShowsErrorForAdminUpdate(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -97,7 +97,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 休憩終了時間が退勤時間より後の場合にエラーメッセージが表示される
-    public function break_end_after_end_shows_error_for_admin_update(): void
+    public function breakEndAfterEndShowsErrorForAdminUpdate(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);
@@ -122,7 +122,7 @@ class AdminAttendanceCorrectionTest extends TestCase
 
     #[Test]
     // [ID:13] 備考欄が未入力の場合にエラーメッセージが表示される
-    public function reason_required_shows_error_for_admin_update(): void
+    public function reasonRequiredShowsErrorForAdminUpdate(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
         $user = User::factory()->create(['is_admin' => false]);

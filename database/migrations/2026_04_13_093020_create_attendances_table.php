@@ -18,6 +18,7 @@ return new class extends Migration
                 ->default(AttendanceStatusCode::OFF);
             $table->text('remarks')->nullable();
             $table->timestamps();
+            $table->unique(['user_id', 'work_date'], 'attendances_user_id_work_date_unique');
         });
     }
 
